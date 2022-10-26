@@ -1,6 +1,8 @@
 #
-resource/*
+resource/
+*zip
 *environment
+backup/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

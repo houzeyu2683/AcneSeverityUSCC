@@ -1,4 +1,4 @@
 
 from ._table_ import table
-from ._vacabulary_ import vocabulary
 from ._loader_ import loader
+from ._validation_ import validation

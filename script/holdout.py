@@ -2,24 +2,25 @@
 import data
 import network
 
-train = "~/Desktop/Projects/Classification/AcneSeverity/resource/txt/tr.txt"
-test = "~/Desktop/Projects/Classification/AcneSeverity/resource/txt/te.txt"
+train = "resource/v2/csv/train.csv"
+validation = None
+test = "resource/v2/csv/test.csv"
 
-table = data.table(train=train, test=test)
-table.hold(size=0.1, stratification=None)
+table = data.table(train=train, validation=validation, test=test)
+table.load()
+table.hold(size=0.2, stratification='vote')
+
 dataset = table.export(format='dataset')
-
 loader = data.loader(batch=8, device='cuda')
 loader.define(train=dataset.train, validation=dataset.validation, test=dataset.test)
 
-model = network.model(backbone='mobilenet')
+model = network.model(backbone='mobilenet', classification=2)
 machine = network.machine(model=model, device='cuda')
-# batch = machine.model.cost(next(iter(loader.train)))
 machine.optimization(method='adam')
 
-epoch = 20
+epoch = 100
 loop = range(epoch)
-date = "0930(mobilenet)"
+version = "0930(mobilenet)"
 summary   = {'train':[], 'validation':[], "test":[]}
 iteration = {'train':[], 'validation':[], "test":[]}
 report    = {'train':[], 'validation':[], "test":[]}
@@ -38,15 +39,10 @@ for step in loop:
         s = machine.evaluate(test=loader.test)
         summary['test']   += [s]
         report['test']    += [s['test report']]
-        machine.save('./log-{}/{}-checkpoint/model.pt'.format(date, step))
-        machine.write(text=report['train'][-1], path='./log-{}/{}-checkpoint/train report.txt'.format(date, step))
-        machine.write(text=report['validation'][-1], path='./log-{}/{}-checkpoint/validation report.txt'.format(date, step))
-        machine.write(text=report['test'][-1], path='./log-{}/{}-checkpoint/test report.txt'.format(date, step))
+        machine.save('./log-{}/{}-checkpoint/model.pt'.format(version, step))
+        machine.write(text=report['train'][-1], path='./log-{}/{}-checkpoint/train report.txt'.format(version, step))
+        machine.write(text=report['validation'][-1], path='./log-{}/{}-checkpoint/validation report.txt'.format(version, step))
+        machine.write(text=report['test'][-1], path='./log-{}/{}-checkpoint/test report.txt'.format(version, step))
         pass
 
     continue
-
-# for i in range(200):
-#     print(i%10==9)
-#     continue
-

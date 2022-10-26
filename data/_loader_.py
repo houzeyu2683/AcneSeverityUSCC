@@ -4,9 +4,21 @@ import torch
 import os
 import PIL.Image
 import torchvision.transforms
+import yaml
+import glob
 
-label = {'0':0, '1':1, '2':2, '3':3}
-storage = "/home/houzeyu2683/Desktop/Projects/Classification/AcneSeverity/resource/jpg"
+with open('environment.yaml') as paper:
+    
+    environment = yaml.load(paper, yaml.loader.SafeLoader)
+    pass
+
+def create(name='case'):
+
+    assert name, 'define name please'
+    class prototype: pass
+    prototype.__qualname__ = name
+    prototype.__name__ = name
+    return(prototype)
 
 class process:
     
@@ -17,10 +29,20 @@ class process:
 
     def learn(self):
         
-        image = PIL.Image.open(os.path.join(storage, self.item[0])).convert("RGB")
+        case = create(name='case')
+        pass
+        
+        ##  Index process.
+        case.index = self.item['image']
+        pass
+
+        ##  Image process.
+        storage = environment['storage']
+        path = "".join(glob.glob(storage + self.item['image']))
+        image = PIL.Image.open(path).convert("RGB")
         mu  = [0.46, 0.36, 0.29]
         std = [0.27, 0.21, 0.18]
-        size = (400, 400)
+        size = (240, 240)
         position = (224, 224)
         convert = torchvision.transforms.Compose([
             torchvision.transforms.Resize(size),
@@ -28,16 +50,30 @@ class process:
             torchvision.transforms.ToTensor(),
             torchvision.transforms.Normalize(mu, std),
         ])
-        self.image = convert(image).type(torch.FloatTensor)
-        self.target = torch.tensor(label.get(self.item[1])).type(torch.LongTensor)
-        return
+        case.image = convert(image).type(torch.FloatTensor)
+        pass
+
+        ##  Label process.
+        label = environment['label']
+        case.target = torch.tensor(label.get(self.item['vote'])).type(torch.LongTensor)
+        return(case)
 
     def infer(self):
 
-        image = PIL.Image.open(os.path.join(storage, self.item[0])).convert("RGB")
+        case = create(name='case')
+        pass
+        
+        ##  Index process.
+        case.index = self.item['image']
+        pass
+
+        ##  Image process.
+        storage = environment['storage']
+        path = "".join(glob.glob(storage + self.item['image']))
+        image = PIL.Image.open(path).convert("RGB")
         mu  = [0.46, 0.36, 0.29]
         std = [0.27, 0.21, 0.18]
-        size = (400, 400)
+        size = (240, 240)
         position = (224, 224)
         convert = torchvision.transforms.Compose([
             torchvision.transforms.Resize(size),
@@ -45,27 +81,31 @@ class process:
             torchvision.transforms.ToTensor(),
             torchvision.transforms.Normalize(mu, std),
         ])
-        self.image = convert(image).type(torch.FloatTensor)
-        self.target = torch.tensor(label.get(self.item[1])).type(torch.LongTensor)
-        return
+        case.image = convert(image).type(torch.FloatTensor)
+        pass
+
+        ##  Label process.
+        label = environment['label']
+        case.target = torch.tensor(label.get(self.item["vote"])).type(torch.LongTensor)
+        return(case)
 
 def collect(iteration=None, inference=False, device='cpu'):
 
-    class batch: 
-        
-        size = len(iteration)
-        pass
-
+    batch = create(name='batch')
     batch.iteration = iteration
     batch.inference = inference
+    batch.size    = 0
+    batch.index   = []
     batch.image   = []
     batch.target  = []
     for item in iteration:
             
         engine = process(item=item)
-        engine.learn() if(not batch.inference) else engine.infer()
-        batch.image += [engine.image.unsqueeze(0)]
-        batch.target += [engine.target.unsqueeze(0)]
+        case = engine.learn() if(not batch.inference) else engine.infer()
+        batch.index += [case.index]
+        batch.image += [case.image.unsqueeze(0)]
+        batch.target += [case.target.unsqueeze(0)]
+        batch.size += 1
         continue
 
     batch.image = torch.cat(batch.image, axis=0).to(device)

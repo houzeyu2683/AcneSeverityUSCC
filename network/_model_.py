@@ -4,7 +4,7 @@ import torchvision
 
 class model(torch.nn.Module):
 
-    def __init__(self, backbone='densenet'):
+    def __init__(self, backbone='densenet', classification=2):
 
         super().__init__()
         if(backbone=='densenet'):
@@ -14,9 +14,7 @@ class model(torch.nn.Module):
                 "0":torch.nn.Sequential(*net),
                 '1':torch.nn.Sequential(torch.nn.AvgPool2d((7,7))),
                 '2':torch.nn.Sequential(
-                    torch.nn.Linear(1024, 2),
-                    torch.nn.Softmax(dim=1)
-                    # torch.nn.LogSoftmax(dim=1)
+                    torch.nn.Linear(1024, classification)
                 )
             }
             pass
@@ -28,9 +26,7 @@ class model(torch.nn.Module):
             layer = {
                 "0":torch.nn.Sequential(*net),
                 '1':torch.nn.Sequential(
-                    torch.nn.Linear(2048, 2),
-                    # torch.nn.Softmax(dim=1)
-                    torch.nn.LogSoftmax(dim=1)
+                    torch.nn.Linear(2048, classification)
                 )
             }
             pass
@@ -42,9 +38,7 @@ class model(torch.nn.Module):
                 "0":torch.nn.Sequential(*net),
                 '1':torch.nn.Sequential(torch.nn.AvgPool2d((7,7))),
                 '2':torch.nn.Sequential(
-                    torch.nn.Linear(1024, 4),
-                    # torch.nn.Softmax(dim=1)
-                    # torch.nn.LogSoftmax(dim=1)
+                    torch.nn.Linear(1024, classification)
                 )
             }
             pass
@@ -54,22 +48,20 @@ class model(torch.nn.Module):
             net = [i for i in torchvision.models.efficientnet_b0(weights="EfficientNet_B0_Weights.IMAGENET1K_V1").children()][:-1]
             layer = {
                 "0":torch.nn.Sequential(*net),
-                # '1':torch.nn.Sequential(torch.nn.AvgPool2d((7,7))),
                 '1':torch.nn.Sequential(
-                    torch.nn.Linear(1280, 2),
-                    # torch.nn.Softmax(dim=1)
-                    # torch.nn.LogSoftmax(dim=1)
+                    torch.nn.Linear(1280, classification)
                 )
             }
             pass
 
         if(backbone=='mobilenet'):
 
-            net = torchvision.models.MobileNetV2(num_classes=2)
+            net = torchvision.models.MobileNetV2(num_classes=classification)
             layer = {
                 "0":net
             }
 
+        self.classification = classification
         self.backbone = backbone
         self.layer = torch.nn.ModuleDict(layer)
         return

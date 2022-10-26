@@ -5,14 +5,24 @@ import torch
 
 class table:
 
-    def __init__(self, train=None, test=None):
+    def __init__(self, train=None, validation=None, test=None):
         
-        if(train): self.train = pandas.read_csv(train, dtype="str", sep="\s+", header=None)
-        if(test): self.test = pandas.read_csv(test, dtype="str", sep="\s+", header=None)
+        self.train, self.validation, self.test = train, validation, test
+        return
+
+    def load(self):
+
+        read = pandas.read_csv
+        empty = pandas.DataFrame
+        self.train = read(self.train, dtype="str", sep=",") if(self.train) else empty()
+        self.validation = read(self.validation, dtype="str", sep=",") if(self.validation) else empty()
+        self.test = read(self.test, dtype="str", sep=",") if(self.test) else empty()
         return
 
     def hold(self, size=0.2, stratification=None):
 
+        
+        assert self.validation.empty, 'self.validation already exist'
         if(stratification): stratification = self.train[stratification]
         train, validation = sklearn.model_selection.train_test_split(
             self.train, 
@@ -30,16 +40,16 @@ class table:
         if(format=='dataset'):
 
             class dataset: pass
-            if(self.train is not None): dataset.train = collection(form=self.train)
-            if(self.validation is not None): dataset.validation = collection(form=self.validation)
-            if(self.test is not None): dataset.test = collection(form=self.test)
+            dataset.train = None if(self.train.empty) else unit(form=self.train)
+            dataset.validation = None if(self.validation.empty) else unit(form=self.validation)
+            dataset.test = None if(self.test.empty) else unit(form=self.test)
             return(dataset)
-        
+
         pass
 
     pass
 
-class collection(torch.utils.data.Dataset):
+class unit(torch.utils.data.Dataset):
 
     def __init__(self, form=None):
         

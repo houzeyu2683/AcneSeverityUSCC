@@ -39,11 +39,9 @@ class machine:
             return        
 
     def learn(self, train=None):
-
     
         assert train, 'train not found'
         class iteration:  pass
-        # iteration.index = []
         iteration.loss  = []
         iteration.size  = []
         pass
