@@ -56,6 +56,10 @@ class process:
         ##  Label process.
         label = environment['label']
         case.target = torch.tensor(label.get(self.item['vote'])).type(torch.LongTensor)
+
+        ##  Class embedding process.
+        embedding = self.item[environment['embedding']].astype("float")
+        case.embedding = torch.tensor(embedding).type(torch.FloatTensor)
         return(case)
 
     def infer(self):
@@ -87,6 +91,10 @@ class process:
         ##  Label process.
         label = environment['label']
         case.target = torch.tensor(label.get(self.item["vote"])).type(torch.LongTensor)
+
+        ##  Class embedding process.
+        embedding = self.item[environment['embedding']].astype("float")
+        case.embedding = torch.tensor(embedding).type(torch.FloatTensor)
         return(case)
 
 def collect(iteration=None, inference=False, device='cpu'):
@@ -98,6 +106,7 @@ def collect(iteration=None, inference=False, device='cpu'):
     batch.index   = []
     batch.image   = []
     batch.target  = []
+    batch.embedding = []
     for item in iteration:
             
         engine = process(item=item)
@@ -105,11 +114,13 @@ def collect(iteration=None, inference=False, device='cpu'):
         batch.index += [case.index]
         batch.image += [case.image.unsqueeze(0)]
         batch.target += [case.target.unsqueeze(0)]
+        batch.embedding += [case.embedding.unsqueeze(0)]
         batch.size += 1
         continue
 
     batch.image = torch.cat(batch.image, axis=0).to(device)
     batch.target = torch.cat(batch.target, axis=0).to(device)
+    batch.embedding = torch.cat(batch.embedding, axis=0).to(device)
     return(batch)
 
 class loader:
@@ -129,8 +140,9 @@ class loader:
                 shuffle=True , drop_last=True, 
                 collate_fn=functools.partial(collect, inference=False, device=self.device)
             )
+            self.sample = self.check(self.train)
             pass
-        
+
         if(validation is not None):
 
             self.validation = torch.utils.data.DataLoader(
@@ -138,6 +150,7 @@ class loader:
                 shuffle=False , drop_last=False,
                 collate_fn=functools.partial(collect, inference=True, device=self.device)
             )
+            _ = self.check(self.validation)
             pass
 
         if(test is not None):
@@ -147,8 +160,15 @@ class loader:
                 shuffle=False , drop_last=False, 
                 collate_fn=functools.partial(collect, inference=True, device=self.device)
             )
+            _ = self.check(self.test)
             pass
 
         return
 
+    def check(self, loader):
+
+        try: batch = next(iter(loader)) 
+        except: print("error when process batch data")
+        return(batch)
+    
     pass
