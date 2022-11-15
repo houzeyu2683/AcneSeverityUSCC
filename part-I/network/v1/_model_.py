@@ -117,6 +117,15 @@ class Model(torch.nn.Module):
         score = s.unsqueeze(dim=0) if(n==1) else s
         return(score)
 
+    def getScore(self, batch):
+
+        # 0    1.043859
+        # 1    0.833664
+        # 2    2.080128
+        # 3    2.424322
+        score = self.forward(batch)
+        return(score)
+
     def getCost(self, batch):
         # 0    1.043859
         # 1    0.833664
@@ -126,7 +135,7 @@ class Model(torch.nn.Module):
         target = batch.target
         weight = None
         criteria  = torch.nn.CrossEntropyLoss(weight)
-        score = self.forward(batch)
+        score = self.getScore(batch)
         loss = criteria(score, target)
         pass
     

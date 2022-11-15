@@ -23,6 +23,11 @@ class machine:
         # self.device = device
         return
 
+    def loadModel(self, path, device='cuda'):
+
+        self.model = torch.load(path, map_location=device)
+        return
+
     def defineOptimization(self, method='adam'):
 
         # self.model = self.model.to(self.device)
