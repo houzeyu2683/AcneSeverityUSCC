@@ -13,16 +13,16 @@ sheet.splitValidation(percentage=0.2, stratification='label')
 
 engine = data.Engine(train=sheet.train, validation=sheet.validation, test=sheet.test)
 engine.defineDataset()
-engine.defineLoader(batch=1, device='cuda')
+engine.defineLoader(batch=32, device='cuda')
 loader = engine.loader
 # batch = engine.getSample()
 
-model = network.v1.Model(backbone='densenet', classification=2, device='cuda')
+model = network.v1.Model(backbone='resnet', classification=2, device='cuda')
 machine = network.v1.machine(model=model)
 machine.defineOptimization(method='adam')
 
-epoch = 50
-loop = range(50)
+epoch = 20
+loop = range(epoch)
 history = {
     'test':{'accuracy':[], 'report':[], 'auc':[], 'confusion':[]}, 
     'validation':{'accuracy':[], 'report':[], 'auc':[], 'confusion':[]}

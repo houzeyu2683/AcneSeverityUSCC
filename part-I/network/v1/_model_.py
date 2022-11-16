@@ -18,20 +18,22 @@ class Model(torch.nn.Module):
         super().__init__()
         if(backbone=='densenet'):
 
-            # net = [i for i in torchvision.models.densenet121(weights="DenseNet121_Weights.DEFAULT").children()][:-1]
-            net = [i for i in torchvision.models.densenet121(pretrained=True).children()][:-1]
+            net = [i for i in torchvision.models.densenet121(weights="DenseNet121_Weights.DEFAULT").children()][:-1]
+            # net = [i for i in torchvision.models.densenet121(pretrained=True).children()][:-1]
             layer = {
                 "0":torch.nn.Sequential(*net),
                 '1':torch.nn.Sequential(torch.nn.AvgPool2d((7,7))),
                 '2':torch.nn.Sequential(
-                    torch.nn.Linear(1024, classification)
+                    torch.nn.Linear(1024, classification),
+                    # torch.nn.LogSoftmax(dim=1)
                 )
             }
             pass
 
         if(backbone=='resnet'):
-    
-            net = [i for i in torchvision.models.resnet152(pretrained=True).children()][:-1]
+
+            net = [i for i in torchvision.models.resnet152(weights='ResNet152_Weights.IMAGENET1K_V1').children()][:-1]
+            # net = [i for i in torchvision.models.resnet152(pretrained=True).children()][:-1]
             layer = {
                 "0":torch.nn.Sequential(*net),
                 '1':torch.nn.Sequential(
@@ -40,24 +42,25 @@ class Model(torch.nn.Module):
             }
             pass
 
-        if(backbone=='efficientnet'):
+        # if(backbone=='efficientnet'):
 
-            # net = [i for i in torchvision.models.efficientnet_b0(weights="EfficientNet_B0_Weights.IMAGENET1K_V1").children()][:-1]
-            net = [i for i in torchvision.models.efficientnet_b0(pretrained=True).children()][:-1]
-            layer = {
-                "0":torch.nn.Sequential(*net),
-                '1':torch.nn.Sequential(
-                    torch.nn.Linear(1280, classification)
-                )
-            }
-            pass
+        #     # net = [i for i in torchvision.models.efficientnet_b0(weights="EfficientNet_B0_Weights.IMAGENET1K_V1").children()][:-1]
+        #     net = [i for i in torchvision.models.efficientnet_b0(pretrained=True).children()][:-1]
+        #     layer = {
+        #         "0":torch.nn.Sequential(*net),
+        #         '1':torch.nn.Sequential(
+        #             torch.nn.Linear(1280, classification)
+        #         )
+        #     }
+        #     pass
 
-        if(backbone=='mobilenet'):
+        # if(backbone=='mobilenet'):
 
-            net = torchvision.models.MobileNetV2(num_classes=classification)
-            layer = {
-                "0":net
-            }
+        #     net = torchvision.models.MobileNetV2(num_classes=classification)
+        #     layer = {
+        #         "0":net
+        #     }
+        #     pass
 
         self.device = device
         self.classification = classification
@@ -76,7 +79,8 @@ class Model(torch.nn.Module):
 
             c0 = x
             c1 = l['0'](c0)
-            c2 = l['1'](c1).squeeze()
+            # c2 = l['1'](c1).squeeze()
+            c2 = l['1'](c1).flatten(1, -1)
             c3 = l['2'](c2)
             s = c3
             pass
@@ -84,37 +88,39 @@ class Model(torch.nn.Module):
         if(self.backbone=='resnet'):
 
             c0 = x
-            c1 = l['0'](c0).squeeze()
+            # c1 = l['0'](c0).squeeze()
+            c1 = l['0'](c0).flatten(1, -1)
             c2 = l['1'](c1)
             s = c2
             pass
 
-        if(self.backbone=='shufflenet'):
+        # if(self.backbone=='shufflenet'):
 
-            c0 = x
-            c1 = l['0'](c0)
-            c2 = l['1'](c1).squeeze()
-            c3 = l['2'](c2)
-            s = c3
-            pass
+        #     c0 = x
+        #     c1 = l['0'](c0)
+        #     c2 = l['1'](c1).squeeze()
+        #     c3 = l['2'](c2)
+        #     s = c3
+        #     pass
 
-        if(self.backbone=='efficientnet'):
+        # if(self.backbone=='efficientnet'):
 
-            c0 = x
-            c1 = l['0'](c0).squeeze()
-            c2 = l['1'](c1)
-            s = c2
-            pass
+        #     c0 = x
+        #     c1 = l['0'](c0).squeeze()
+        #     c2 = l['1'](c1)
+        #     s = c2
+        #     pass
 
 
-        if(self.backbone=='mobilenet'):
+        # if(self.backbone=='mobilenet'):
 
-            c0 = x
-            c1 = l['0'](c0)
-            s = c1
-            pass
+        #     c0 = x
+        #     c1 = l['0'](c0)
+        #     s = c1
+        #     pass
 
-        score = s.unsqueeze(dim=0) if(n==1) else s
+        # score = s.unsqueeze(dim=0) if(n==1) else s
+        score = s
         return(score)
 
     def getCost(self, batch):
