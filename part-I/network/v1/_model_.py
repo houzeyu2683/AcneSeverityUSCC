@@ -72,7 +72,7 @@ class Model(torch.nn.Module):
 
         l = self.layer
         x = batch.image
-        n = batch.size
+        # n = batch.size
         pass
 
         if(self.backbone=='densenet'):
@@ -122,6 +122,36 @@ class Model(torch.nn.Module):
         # score = s.unsqueeze(dim=0) if(n==1) else s
         score = s
         return(score)
+
+    def getExtraction(self, batch):
+
+        l = self.layer
+        x = batch.image
+        pass
+
+        if(self.backbone=='densenet'):
+
+            c0 = x
+            c1 = l['0'](c0)
+            # c2 = l['1'](c1).squeeze()
+            c2 = l['1'](c1).flatten(1, -1)
+            c3 = l['2'](c2)
+            f = c2
+            s = c3
+            pass
+
+        if(self.backbone=='resnet'):
+
+            c0 = x
+            # c1 = l['0'](c0).squeeze()
+            c1 = l['0'](c0).flatten(1, -1)
+            c2 = l['1'](c1)
+            f = c1
+            s = c2
+            pass
+        
+        _ = s
+        return(f)
 
     def getScore(self, batch):
 
