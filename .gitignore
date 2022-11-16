@@ -4,7 +4,7 @@ resource/
 environment
 backup/
 *pt
-output/*
+output/*.pt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
