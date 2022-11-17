@@ -1,0 +1,9 @@
+storage: {
+  "image": './resource/ACNE04/Classification/JPEGImages/',
+  "attribution": "./resource/ACNE04/Attribution/embedding_17-10-13-636644.csv"
+  "model": './output/model/'
+}
+label: {'0':0, '1':1, "2":1, "3":1}
+
+
+
