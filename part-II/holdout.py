@@ -4,60 +4,38 @@ import network
 import metric
 
 sheet = data.Sheet(
-    train='./resource/ACNE04/Classification/NNEW_trainval_0.csv', 
-    validation=None, 
-    test="./resource/ACNE04/Classification/NNEW_test_0.csv"
+    train='./resource/ACNE04/Attribution/train-feature.pkl', 
+    validation='./resource/ACNE04/Attribution/validation-feature.pkl', 
+    test="./resource/ACNE04/Attribution/test-feature.pkl"
 )
-sheet.loadTable()
-sheet.splitValidation(percentage=0.2, stratification='label')
+sheet.loadDictionary()
 
 engine = data.Engine(train=sheet.train, validation=sheet.validation, test=sheet.test)
 engine.defineDataset()
 engine.defineLoader(batch=32, device='cuda')
 loader = engine.loader
-# batch = engine.getSample()
+batch = engine.getSample()
 
-model = network.v1.Model(backbone='resnet', classification=2, device='cuda')
-machine = network.v1.machine(model=model)
+model = network.v2.Model(device='cuda')
+# value = model.forward(batch)
+# model.cost(value)
+
+machine = network.v2.machine(model=model)
 machine.defineOptimization(method='adam')
 
 epoch = 20
 loop = range(epoch)
 history = {
-    'test':{'accuracy':[], 'report':[], 'auc':[], 'confusion':[]}, 
-    'validation':{'accuracy':[], 'report':[], 'auc':[], 'confusion':[]}
+    'train':{'loss_total':[], 'loss_kl':[], 'loss_rec':[]}
 }
+# history = []
 for iteration in loop:
 
-    _ = machine.learnIteration(loader=engine.loader.train)
-    machine.saveModel(path='./output/checkpoint-{}/acne-classifier.pt'.format(iteration))
-    pass
-
-    feedback = machine.evaluateIteration(loader=engine.loader.validation, title='validation')
-    classification = metric.Classification(
-        score=feedback.score, 
-        prediction=feedback.prediction, 
-        target=feedback.target
-    )
-    history[feedback.title]['accuracy'] += [classification.getAccuracy()]
-    history[feedback.title]['report'] += [classification.getReport()]
-    history[feedback.title]['auc'] += [classification.getAreaUnderCurve()]
-    history[feedback.title]['confusion'] += [classification.getConfusionTable()]
-    pass
-
-    feedback = machine.evaluateIteration(loader=engine.loader.test, title='test')
-    classification = metric.Classification(
-        score=feedback.score, 
-        prediction=feedback.prediction, 
-        target=feedback.target
-    )
-    history[feedback.title]['accuracy'] += [classification.getAccuracy()]
-    history[feedback.title]['report'] += [classification.getReport()]
-    history[feedback.title]['auc'] += [classification.getAreaUnderCurve()]
-    history[feedback.title]['confusion'] += [classification.getConfusionTable()]
-    pass
-
+    train_feedback = machine.learnIteration(loader=engine.loader.train)
+    history['train']['loss_total'] += [train_feedback.loss_total]
+    history['train']['loss_kl']    += [train_feedback.loss_kl]
+    history['train']['loss_rec']   += [train_feedback.loss_rec]
     machine.writeText(history, './output/history.txt')
+    machine.saveModel(path='./output/checkpoint-{}/acne-vae-weight.pt'.format(iteration))
     continue
-
 

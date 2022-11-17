@@ -25,28 +25,37 @@ def createPack(name='case'):
     pack.__name__ = name
     return(pack)
 
-def createDataset(table):
+def createDataset(dictionary):
 
     class unit(torch.utils.data.Dataset):
 
-        def __init__(self, table=table):
+        def __init__(self, dictionary=dictionary):
             
-            self.table = table
+            self.dictionary = dictionary
             return
 
         def __getitem__(self, index):
 
-            item = self.table.loc[index]
+            item = {}
+            for key in self.dictionary:
+
+                if(key=='index'): value = self.dictionary[key][index]
+                if(key=='target'): value = self.dictionary[key][index]
+                if(key=='feature'): value = self.dictionary[key][index,:]
+                if(key=='attribution'): value = self.dictionary[key][index,:]
+                item[key] = value
+                continue
+
             return(item)
         
         def __len__(self):
 
-            length = len(self.table)
+            length = len(self.dictionary['index'])
             return(length)
 
         pass    
 
-    dataset = unit(table=table) 
+    dataset = unit(dictionary=dictionary) 
     return(dataset)
 
 class Process:
@@ -63,33 +72,24 @@ class Process:
         pass
         
         ##  Index process.
-        case.index = self.item['image']
+        case.index = self.item['index']
         pass
 
-        ##  Image process.
-        storage = environment['storage']
-        path = "".join(glob.glob(storage + self.item['image']))
-        image = PIL.Image.open(path).convert("RGB")
-        mu  = [0.46, 0.36, 0.29]
-        std = [0.27, 0.21, 0.18]
-        size = (240, 240)
-        position = (224, 224)
-        convert = torchvision.transforms.Compose([
-            torchvision.transforms.Resize(size),
-            torchvision.transforms.RandomCrop(position),
-            torchvision.transforms.ToTensor(),
-            torchvision.transforms.Normalize(mu, std),
-        ])
-        case.image = convert(image).type(torch.FloatTensor)
+        ##  Feature process.
+        case.feature = torch.tensor(self.item['feature']).type(torch.FloatTensor)
+        pass
+
+        ##  Attribution process.
+        case.attribution = torch.tensor(self.item['attribution']).type(torch.FloatTensor)
         pass
 
         ##  Label process.
         label = environment['label']
-        case.target = torch.tensor(label.get(self.item['label'])).type(torch.LongTensor)
+        # print(self.item['target'])
+        # print(label)
+        case.target = torch.tensor(label.get(self.item['target'])).type(torch.LongTensor)
+        pass
 
-        # ##  Class embedding process.
-        # embedding = self.item[environment['embedding']].astype("float")
-        # case.embedding = torch.tensor(embedding).type(torch.FloatTensor)
         return(case)
 
     def inferCase(self):
@@ -99,33 +99,22 @@ class Process:
         pass
         
         ##  Index process.
-        case.index = self.item['image']
+        case.index = self.item['index']
         pass
 
-        ##  Image process.
-        storage = environment['storage']
-        path = "".join(glob.glob(storage + self.item['image']))
-        image = PIL.Image.open(path).convert("RGB")
-        mu  = [0.46, 0.36, 0.29]
-        std = [0.27, 0.21, 0.18]
-        size = (240, 240)
-        position = (224, 224)
-        convert = torchvision.transforms.Compose([
-            torchvision.transforms.Resize(size),
-            torchvision.transforms.CenterCrop(position),
-            torchvision.transforms.ToTensor(),
-            torchvision.transforms.Normalize(mu, std),
-        ])
-        case.image = convert(image).type(torch.FloatTensor)
+        ##  Feature process.
+        case.feature = torch.tensor(self.item['feature']).type(torch.FloatTensor)
+        pass
+
+        ##  Attribution process.
+        case.attribution = torch.tensor(self.item['attribution']).type(torch.FloatTensor)
         pass
 
         ##  Label process.
         label = environment['label']
-        case.target = torch.tensor(label.get(self.item["label"])).type(torch.LongTensor)
-
-        # ##  Class embedding process.
-        # embedding = self.item[environment['embedding']].astype("float")
-        # case.embedding = torch.tensor(embedding).type(torch.FloatTensor)
+        case.target = torch.tensor(label.get(self.item['target'])).type(torch.LongTensor)
+        pass
+    
         return(case)
 
 def collectBatch(iteration=None, inference=False, device='cpu'):
@@ -135,23 +124,23 @@ def collectBatch(iteration=None, inference=False, device='cpu'):
     batch.inference = inference
     batch.size    = 0
     batch.index   = []
-    batch.image   = []
-    batch.target  = []
-    # batch.embedding = []
+    batch.feature     = []
+    batch.target      = []
+    batch.attribution = []
     for item in iteration:
             
         process = Process(item=item)
         case = process.learnCase() if(not batch.inference) else process.inferCase()
         batch.index += [case.index]
-        batch.image += [case.image.unsqueeze(0)]
+        batch.feature += [case.feature.unsqueeze(0)]
         batch.target += [case.target.unsqueeze(0)]
-        # batch.embedding += [case.embedding.unsqueeze(0)]
+        batch.attribution += [case.attribution.unsqueeze(0)]
         batch.size += 1
         continue
 
-    batch.image = torch.cat(batch.image, axis=0).to(device)
+    batch.feature = torch.cat(batch.feature, axis=0).to(device)
     batch.target = torch.cat(batch.target, axis=0).to(device)
-    # batch.embedding = torch.cat(batch.embedding, axis=0).to(device)
+    batch.attribution = torch.cat(batch.attribution, axis=0).to(device)
     return(batch)
 
 def createLoader(dataset=None, batch=32, inference=False, device='cuda'):
@@ -167,29 +156,43 @@ def createLoader(dataset=None, batch=32, inference=False, device='cuda'):
 
 class Engine:
 
-    def __init__(self, train=pandas.DataFrame(), validation=pandas.DataFrame(), test=pandas.DataFrame()):
+    def __init__(self, train=dict(), validation=dict(), test=dict()):
 
-        self.train = train if(not train.empty) else pandas.DataFrame()
-        self.validation = validation if(not validation.empty) else pandas.DataFrame()
-        self.test = test if(not test.empty) else pandas.DataFrame()
+        self.train = train if(train!=dict()) else dict()
+        self.validation = validation if(validation!=dict()) else dict()
+        self.test = test if(test!=dict()) else dict()
         return
 
     def defineDataset(self):
 
         dataset = createPack(name='dataset')
-        dataset.train = createDataset(table=self.train) if(not self.train.empty) else None
-        dataset.validation = createDataset(table=self.validation) if(not self.validation.empty) else None
-        dataset.test = createDataset(table=self.test) if(not self.test.empty) else None
+        dataset.train = createDataset(dictionary=self.train) if(self.train!=dict()) else None
+        dataset.validation = createDataset(dictionary=self.validation) if(self.validation!=dict()) else None
+        dataset.test = createDataset(dictionary=self.test) if(self.test!=dict()) else None
         self.dataset = dataset
         return
 
-    def defineLoader(self, batch=32, device='cuda'):
+    def defineLoader(self, batch=32, device='cuda', augmentation=True):
 
         loader = createPack(name='loader')
-        loader.train = createLoader(
-            dataset=self.dataset.train, batch=batch, 
-            inference=False, device=device
-        ) if(self.dataset.train) else None
+        pass
+
+        if(augmentation):
+
+            loader.train = createLoader(
+                dataset=self.dataset.train, batch=batch, 
+                inference=False, device=device
+            ) if(self.dataset.train) else None
+            pass
+
+        else:
+
+            loader.train = createLoader(
+                dataset=self.dataset.train, batch=batch, 
+                inference=True, device=device
+            ) if(self.dataset.train) else None
+            pass
+
         loader.validation = createLoader(
             dataset=self.dataset.validation, batch=batch, 
             inference=True, device=device

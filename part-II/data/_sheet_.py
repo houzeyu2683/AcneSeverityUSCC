@@ -1,4 +1,5 @@
 
+import pickle
 import pandas
 import sklearn.model_selection
 
@@ -7,6 +8,25 @@ class Sheet:
     def __init__(self, train=None, validation=None, test=None):
         
         self.train, self.validation, self.test = train, validation, test
+        return
+
+    def loadDictionary(self):
+
+        if(self.train): 
+            
+            with open(self.train, 'rb') as paper: self.train = pickle.load(paper)
+            pass
+            
+        if(self.validation): 
+            
+            with open(self.validation, 'rb') as paper: self.validation = pickle.load(paper)
+            pass
+
+        if(self.test): 
+            
+            with open(self.test, 'rb') as paper: self.test = pickle.load(paper)
+            pass
+        
         return
 
     def loadTable(self):

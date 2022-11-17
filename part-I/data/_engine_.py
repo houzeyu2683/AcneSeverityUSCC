@@ -183,13 +183,27 @@ class Engine:
         self.dataset = dataset
         return
 
-    def defineLoader(self, batch=32, device='cuda'):
+    def defineLoader(self, batch=32, device='cuda', augmentation=True):
 
         loader = createPack(name='loader')
-        loader.train = createLoader(
-            dataset=self.dataset.train, batch=batch, 
-            inference=False, device=device
-        ) if(self.dataset.train) else None
+        pass
+
+        if(augmentation):
+
+            loader.train = createLoader(
+                dataset=self.dataset.train, batch=batch, 
+                inference=False, device=device
+            ) if(self.dataset.train) else None
+            pass
+
+        else:
+
+            loader.train = createLoader(
+                dataset=self.dataset.train, batch=batch, 
+                inference=True, device=device
+            ) if(self.dataset.train) else None
+            pass
+
         loader.validation = createLoader(
             dataset=self.dataset.validation, batch=batch, 
             inference=True, device=device
