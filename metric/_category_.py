@@ -1,7 +1,7 @@
 
 import sklearn.metrics
 
-class Classification:
+class Category:
 
     def __init__(self, score, prediction, target):
 
@@ -33,6 +33,7 @@ class Classification:
 
     def getAreaUnderCurve(self):
 
+        assert len(set(self.target))==2, 'More than 2 classification.'
         measure = sklearn.metrics.roc_auc_score
         measurement = measure(y_true=self.target, y_score=self.score[:,0])
         result = measurement

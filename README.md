@@ -8,3 +8,6 @@ Part-I
 
 [Model](https://drive.google.com/drive/folders/1MF7mUerrxCxXUo7TRsYM3QxMRKvekX2z?usp=share_link)
 
+
+PYTHONPATH = './' python script/classification.py
+<!-- PYTHONPATH = './' python script/classification.py -->
