@@ -35,6 +35,7 @@ def loadPickle(path):
 
 def savePickle(content, path):
 
+    if(not os.path.exists(path)): os.makedirs(os.path.dirname(path), exist_ok=True)
     with open(path, 'wb') as paper:
 
         output = pickle.dump(content, paper)
