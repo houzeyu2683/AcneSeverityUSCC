@@ -6,10 +6,11 @@ import metric
 environment = bucket.loadYaml(path='./environment.yaml')
 pass
 
+data = environment['data']
 dataset = bucket.createClass('dataset')
-dataset.train = bucket.Set(environment['train'])
-dataset.validation = bucket.Set(environment['validation'])
-dataset.test = bucket.Set(environment['test'])
+dataset.train      = bucket.Set(data['train'])
+dataset.validation = bucket.Set(data['validation'])
+dataset.test       = bucket.Set(data['test'])
 pass
 
 dataset.train.LoadData()
@@ -18,15 +19,15 @@ dataset.test.LoadData()
 pass
 
 loader = bucket.createClass(name='loader')
-loader.train = bucket.createLoader(dataset=dataset.train, batch=8, inference=False, device='cuda')
-loader.validation = bucket.createLoader(dataset=dataset.validation, batch=1, inference=True, device='cuda')
-loader.test = bucket.createLoader(dataset=dataset.test, batch=1, inference=True, device='cuda')
+loader.train      = bucket.createLoader(dataset=dataset.train, batch=32, inference=False, device='cuda')
+loader.validation = bucket.createLoader(dataset=dataset.validation, batch=16, inference=True, device='cuda')
+loader.test       = bucket.createLoader(dataset=dataset.test, batch=16, inference=True, device='cuda')
 pass
 
 sample = bucket.createClass(name='sample')
-sample.train = bucket.getSample(loader.train)
+sample.train      = bucket.getSample(loader.train)
 sample.validation = bucket.getSample(loader.validation)
-sample.test = bucket.getSample(loader.test)
+sample.test       = bucket.getSample(loader.test)
 pass
 
 model = network.v1.Model(backbone='resnet', classification=2, device='cuda')
@@ -34,15 +35,19 @@ machine = network.v1.Machine(model=model)
 machine.defineOptimization(method='adam')
 pass
 
-epoch = 20
+checkpoint = environment['checkpoint']
+history    = checkpoint['history']
+best       = checkpoint['best']
+pass
+
+epoch = 5
 loop = range(epoch)
-history = environment['history']
 for iteration in loop:
 
     ##  Learning process.
-    checkpoint = "models/image-classifier/checkpoint/"
     _ = machine.learnIteration(loader=loader.train)
-    machine.saveModel(path='{}/{}/weight.pt'.format(checkpoint, iteration))
+    machine.saveModel(path='{}/{}/model.pt'.format(checkpoint['path'], iteration))
+    machine.saveWeight(path='{}/{}/weight.pt'.format(checkpoint['path'], iteration))    
     pass
 
     ##  Evaluate train data.
@@ -76,15 +81,15 @@ for iteration in loop:
     continue
 
 ##  Save the history.
-bucket.writeText(text=history, path="{}/history.txt".format(checkpoint))
+bucket.saveYaml(content=history, path="{}/history.yaml".format(checkpoint['path']))
+history = bucket.loadYaml(path="{}/history.yaml".format(checkpoint['path']))
 pass
 
 ##  Find and save the best checkpoint.
-best  = environment['best']
 track = history[best['focus']][best['metric']]
 best['checkpoint'] = track.index(max(track))
-start = "{}/{}/".format(checkpoint, best['checkpoint'])
-end = "{}/{}/".format(checkpoint, 'best')
+start = "{}/{}/".format(checkpoint['path'], best['checkpoint'])
+end = "{}/{}/".format(checkpoint['path'], 'best')
 bucket.copyFolder(start=start, end=end)
 pass
 
@@ -93,19 +98,20 @@ loader.train = bucket.createLoader(dataset=dataset.train, batch=1, inference=Tru
 loader.validation = bucket.createLoader(dataset=dataset.validation, batch=1, inference=True, device='cuda')
 loader.test = bucket.createLoader(dataset=dataset.test, batch=1, inference=True, device='cuda')
 machine = network.v1.Machine(model=None)
-machine.loadModel(path="{}/weight.pt".format(end), device='cuda')
+machine.loadModel(path="{}/best/model.pt".format(checkpoint['path']), device='cuda')
 pass
 
 title = 'train'
 feedback = machine.evaluateIteration(loader=loader.train, title=title)
-bucket.savePickle(feedback, path='resource/ACNE04/Extraction/{}.pkl'.format(title))
+bucket.savePickle(feedback.convertDictionary(), path='resource/ACNE04/Extraction/{}.pkl'.format(title))
 pass
+
 title = 'validation'
 feedback = machine.evaluateIteration(loader=loader.validation, title=title)
-bucket.savePickle(feedback, path='resource/ACNE04/Extraction/{}.pkl'.format(title))
+bucket.savePickle(feedback.convertDictionary(), path='resource/ACNE04/Extraction/{}.pkl'.format(title))
 pass
 
 title = 'test'
 feedback = machine.evaluateIteration(loader=loader.test, title=title)
-bucket.savePickle(feedback, path='resource/ACNE04/Extraction/{}.pkl'.format(title))
+bucket.savePickle(feedback.convertDictionary(), path='resource/ACNE04/Extraction/{}.pkl'.format(title))
 pass

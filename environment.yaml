@@ -1,61 +1,63 @@
 
-train: {
-  image: "./resource/ACNE04/Classification/JPEGImages/",
-  label: {
-    0: 0, 
-    1: 1, 
-    2: 1, 
-    3: 1
-  },
-  table: "./resource/ACNE04/Classification/NNEW_train_0.csv"
-}
-
-validation: {
-  image: "./resource/ACNE04/Classification/JPEGImages/",
-  label: {
-    0: 0, 
-    1: 1, 
-    2: 1, 
-    3: 1
-  },
-  table: "./resource/ACNE04/Classification/NNEW_val_0.csv"
-}
-
-test: {
-  image: "./resource/ACNE04/Classification/JPEGImages/",
-  label: {
-    0: 0, 
-    1: 1, 
-    2: 1, 
-    3: 1
-  },
-  table: "./resource/ACNE04/Classification/NNEW_test_0.csv"
-}
-
-history: {
+data: {
   train: {
-    loss: [],
-    confusion table: [],
-    accuracy: [],
-    area under curve: []
+    image: "./resource/ACNE04/Classification/JPEGImages/",
+    label: {
+      0: 0, 
+      1: 1, 
+      2: 1, 
+      3: 1
+    },
+    table: "./resource/ACNE04/Classification/NNEW_train_0.csv"
   },
   validation: {
-    loss: [],
-    confusion table: [],
-    accuracy: [],
-    area under curve: []
+    image: "./resource/ACNE04/Classification/JPEGImages/",
+    label: {
+      0: 0, 
+      1: 1, 
+      2: 1, 
+      3: 1
+    },
+    table: "./resource/ACNE04/Classification/NNEW_val_0.csv"
   },
   test: {
-    loss: [],
-    confusion table: [],
-    accuracy: [],
-    area under curve: []
-  }      
+    image: "./resource/ACNE04/Classification/JPEGImages/",
+    label: {
+      0: 0, 
+      1: 1, 
+      2: 1, 
+      3: 1
+    },
+    table: "./resource/ACNE04/Classification/NNEW_test_0.csv"
+  }
 }
 
-best: {
-  focus: "test",
-  metric: "accuracy",
-  checkpoint: NULL
+checkpoint: {
+  path: "models/image-classifier/checkpoint/",
+  history: {
+    train: {
+      loss: [],
+      confusion table: [],
+      accuracy: [],
+      area under curve: []
+    },
+    validation: {
+      loss: [],
+      confusion table: [],
+      accuracy: [],
+      area under curve: []
+    },
+    test: {
+      loss: [],
+      confusion table: [],
+      accuracy: [],
+      area under curve: []
+    }      
+  },
+  best: {
+    focus: "test",
+    metric: "accuracy",
+    checkpoint: NULL
+  }  
 }
 

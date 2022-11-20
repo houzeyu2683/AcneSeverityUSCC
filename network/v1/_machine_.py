@@ -10,11 +10,32 @@ import sklearn.metrics
 createClass = lambda name: type(name, (), {})
 runMultiplication = lambda x, y: sum([l*r for l, r in zip(x, y)])
 
+class Feedback:
+
+    def __init__(self, title=None):
+
+        self.title = title
+        return
+
+    def convertDictionary(self):
+
+        variable = vars(self)
+        dictionary = dict(variable)
+        return(dictionary)
+
+    pass
+
 class Machine:
 
     def __init__(self, model=None):
 
         self.model  = model
+        return
+
+    def loadWeight(self, path, device='cuda'):
+
+        self.model.load_state_dict(torch.load(path, map_location=device))
+        # self.model = torch.load(path, map_location=device)
         return
 
     def loadModel(self, path, device='cuda'):
@@ -74,7 +95,8 @@ class Machine:
         pass
         
         ##
-        feedback = createClass(name='feedback')
+        # feedback = createClass(name='feedback')
+        feedback = Feedback(title='train')
         feedback.loss = runMultiplication(iteration.loss, iteration.size) / sum(iteration.size)
         return(feedback)
 
@@ -112,8 +134,7 @@ class Machine:
         iteration.image = sum(iteration.image, [])
         pass
 
-        feedback = createClass(name='feedback')
-        feedback.title      = title
+        feedback = Feedback(title=title)
         feedback.image      = iteration.image
         feedback.loss       = runMultiplication(iteration.loss, iteration.size) / sum(iteration.size)
         feedback.score      = numpy.concatenate(iteration.score, axis=0)
@@ -122,11 +143,19 @@ class Machine:
         feedback.extraction = numpy.concatenate(iteration.extraction, axis=0)
         return(feedback)
 
-    def saveModel(self, path):
+    def saveWeight(self, path):
 
         folder = os.path.dirname(path)
         os.makedirs(folder, exist_ok=True)
         torch.save(self.model.state_dict(), path)
+
+        return
+
+    def saveModel(self, path):
+
+        folder = os.path.dirname(path)
+        os.makedirs(folder, exist_ok=True)
+        torch.save(self.model, path)
 
         return
 

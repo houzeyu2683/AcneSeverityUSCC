@@ -43,9 +43,9 @@ def savePickle(content, path):
 
     return(output)
 
-def writeText(text, path):
+def writeText(content, path):
 
-    text = pprint.pformat(text)
+    text = pprint.pformat(content)
     folder = os.path.dirname(path)
     os.makedirs(folder, exist_ok=True)
     with open(path, 'w') as paper: _ = paper.write(text) 
@@ -56,5 +56,12 @@ def copyFolder(start, end):
     exist = os.path.exists(end)
     if(exist): shutil.rmtree(end)
     shutil.copytree(start, end)
+    return
+
+def saveYaml(content, path):
+
+    folder = os.path.dirname(path)
+    os.makedirs(folder, exist_ok=True)
+    with open(path, 'w') as paper: _ = yaml.dump(content, paper, default_flow_style=None)
     return
 
