@@ -3,6 +3,10 @@
 
 資料以及模型[連結]
 
+2022/11/24
+
+檔案 `download.py` 可以下載當前專案使用的資料集。
+
 2022/11/18
 
 檔案 `v1.py` 用於針對影像模型進行分類，模型架構使用 Residual Neural Network 框架，類別調整可以參考 `environment.ymal` 檔案。
