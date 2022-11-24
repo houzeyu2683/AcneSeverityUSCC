@@ -17,10 +17,10 @@ history: {
     confusion table: [],
     accuracy: [],
     area under curve: []
-  }      
+  },
+  best: {
+    focus: "test",
+    metric: "accuracy",
+    checkpoint: NULL
+  }  
 }
-best: {
-  focus: "test",
-  metric: "accuracy",
-  checkpoint: NULL
-}  

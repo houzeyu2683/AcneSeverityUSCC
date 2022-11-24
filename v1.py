@@ -82,14 +82,18 @@ for iteration in loop:
     history[title]['loss'] += [feedback.loss]
     continue
 
+##  Find the best.
+track = history[best['focus']][best['metric']]
+best['checkpoint'] = track.index(max(track))
+pass
+
 ##  Save the history.
 bucket.v1.saveYaml(content=history, path="{}/history.yaml".format(checkpoint['path']))
 history = bucket.v1.loadYaml(path="{}/history.yaml".format(checkpoint['path']))
 pass
 
-##  Find and save the best checkpoint.
-track = history[best['focus']][best['metric']]
-best['checkpoint'] = track.index(max(track))
+##  Save the best.
+bucket.v1.saveYaml(content=best, path="{}/best.yaml".format(checkpoint['path']))
 source = "{}/{}/".format(checkpoint['path'], best['checkpoint'])
 destination = "{}/{}/".format(checkpoint['path'], 'best')
 bucket.v1.copyFolder(source=source, destination=destination)
