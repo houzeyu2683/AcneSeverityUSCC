@@ -105,15 +105,15 @@ pass
 
 title = 'train'
 feedback = machine.evaluateIteration(loader=train.loader, title=title)
-bucket.v1.savePickle(feedback.convertDictionary(), path='resource/ACNE04/Feedback/{}.pkl'.format(title))
+bucket.v1.savePickle(feedback.convertDictionary(), path='resource/ACNE04/v1/{}.pkl'.format(title))
 pass
 
 title = 'validation'
 feedback = machine.evaluateIteration(loader=validation.loader, title=title)
-bucket.v1.savePickle(feedback.convertDictionary(), path='resource/ACNE04/Feedback/{}.pkl'.format(title))
+bucket.v1.savePickle(feedback.convertDictionary(), path='resource/ACNE04/v1/{}.pkl'.format(title))
 pass
 
 title = 'test'
 feedback = machine.evaluateIteration(loader=test.loader, title=title)
-bucket.v1.savePickle(feedback.convertDictionary(), path='resource/ACNE04/Feedback/{}.pkl'.format(title))
+bucket.v1.savePickle(feedback.convertDictionary(), path='resource/ACNE04/v1/{}.pkl'.format(title))
 pass

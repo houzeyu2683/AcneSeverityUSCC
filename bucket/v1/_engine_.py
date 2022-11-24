@@ -32,6 +32,7 @@ class Set(torch.utils.data.Dataset):
         ##  Table
         path = self.configuration[self.title]['table']
         table = pandas.read_csv(path)
+        self.table = table
         return
 
     pass    
@@ -71,7 +72,7 @@ def collectBatch(iteration=None, configuration=None, inference=False, device='cp
         image = item['image']
         pass
 
-        picture = loadPicture(configuration['image folder'], image)
+        picture = loadPicture(configuration['image'], image)
         picture = transformPicture(picture, inference)
         picture = picture.unsqueeze(0)
         pass
