@@ -3,35 +3,33 @@ import bucket
 import network
 import metric
 
-environment = bucket.loadYaml(path='./environment.yaml')
+configuration = bucket.loadYaml(path='configuration.yaml')
 pass
 
-Dataset = bucket.createClass('Train')
-dataset = Dataset()
-dataset.train      = bucket.Set(environment, 'train')
-dataset.validation = bucket.Set(environment, 'validation')
-dataset.test       = bucket.Set(environment, 'test')
+Train      = bucket.createClass('Train')
+Validation = bucket.createClass('Validation')
+Test       = bucket.createClass('Test')
+train, validation, test = Train(), Validation(), Test()
 pass
 
-dataset.train.LoadData()
-dataset.validation.LoadData()
-dataset.test.LoadData()
+train.set      = bucket.Set(configuration, 'train')
+validation.set = bucket.Set(configuration, 'validation')
+test.set       = bucket.Set(configuration, 'test')
 pass
 
-dataset.train. = bucket.loadPickle(path=data['train']['extraction'])
-
-Loader = bucket.createClass(name='Loader')
-loader = Loader()
-loader.train      = bucket.createLoader(dataset=dataset.train, batch=32, inference=False, device='cuda')
-loader.validation = bucket.createLoader(dataset=dataset.validation, batch=16, inference=True, device='cuda')
-loader.test       = bucket.createLoader(dataset=dataset.test, batch=16, inference=True, device='cuda')
+train.set.LoadData()
+validation.set.LoadData()
+test.set.LoadData()
 pass
 
-Sample = bucket.createClass(name='sample')
-sample = Sample()
-sample.train      = bucket.getSample(loader.train)
-sample.validation = bucket.getSample(loader.validation)
-sample.test       = bucket.getSample(loader.test)
+train.loader      = bucket.createLoader(set=train.set, batch=32, inference=False, device='cuda')
+validation.loader = bucket.createLoader(set=validation.set, batch=16, inference=True, device='cuda')
+test.loader       = bucket.createLoader(set=test.set, batch=16, inference=True, device='cuda')
+pass
+
+train.sample      = bucket.getSample(train.loader)
+validation.sample = bucket.getSample(validation.loader)
+test.sample       = bucket.getSample(test.loader)
 pass
 
 model = network.v1.Model(backbone='resnet', classification=2, device='cuda')
@@ -39,24 +37,24 @@ machine = network.v1.Machine(model=model)
 machine.defineOptimization(method='adam')
 pass
 
-checkpoint = environment['checkpoint']
+checkpoint = bucket.loadYaml(path='checkpoint.yaml')
 history    = checkpoint['history']
 best       = checkpoint['best']
 pass
 
-epoch = 5
+epoch = 10
 loop = range(epoch)
 for iteration in loop:
 
     ##  Learning process.
-    _ = machine.learnIteration(loader=loader.train)
+    _ = machine.learnIteration(loader=train.loader)
     machine.saveModel(path='{}/{}/model.pt'.format(checkpoint['path'], iteration))
     machine.saveWeight(path='{}/{}/weight.pt'.format(checkpoint['path'], iteration))    
     pass
 
     ##  Evaluate train data.
     title = 'train'
-    feedback = machine.evaluateIteration(loader=loader.train, title=title)
+    feedback = machine.evaluateIteration(loader=train.loader, title=title)
     category = metric.Category(score=feedback.score, prediction=feedback.prediction, target=feedback.target)
     history[title]['accuracy']         += [category.getAccuracy()]
     history[title]['confusion table']  += [category.getConfusionTable()]
@@ -66,7 +64,7 @@ for iteration in loop:
 
     ##  Evaluate validation data.
     title = 'validation'
-    feedback = machine.evaluateIteration(loader=loader.train, title=title)
+    feedback = machine.evaluateIteration(loader=validation.loader, title=title)
     category = metric.Category(score=feedback.score, prediction=feedback.prediction, target=feedback.target)
     history[title]['accuracy']         += [category.getAccuracy()]
     history[title]['confusion table']  += [category.getConfusionTable()]
@@ -76,7 +74,7 @@ for iteration in loop:
 
     ##  Evaluate test data.
     title = 'test'
-    feedback = machine.evaluateIteration(loader=loader.train, title=title)
+    feedback = machine.evaluateIteration(loader=test.loader, title=title)
     category = metric.Category(score=feedback.score, prediction=feedback.prediction, target=feedback.target)
     history[title]['accuracy']         += [category.getAccuracy()]
     history[title]['confusion table']  += [category.getConfusionTable()]
@@ -98,24 +96,24 @@ bucket.copyFolder(source=source, destination=destination)
 pass
 
 ##  Save the extraction.
-loader.train = bucket.createLoader(dataset=dataset.train, batch=1, inference=True, device='cuda')
-loader.validation = bucket.createLoader(dataset=dataset.validation, batch=1, inference=True, device='cuda')
-loader.test = bucket.createLoader(dataset=dataset.test, batch=1, inference=True, device='cuda')
+train.loader = bucket.createLoader(set=train.set, batch=1, inference=True, device='cuda')
+validation.loader = bucket.createLoader(set=validation.set, batch=1, inference=True, device='cuda')
+test.loader = bucket.createLoader(set=test.set, batch=1, inference=True, device='cuda')
 machine = network.v1.Machine(model=None)
 machine.loadModel(path="{}/best/model.pt".format(checkpoint['path']), device='cuda')
 pass
 
 title = 'train'
-feedback = machine.evaluateIteration(loader=loader.train, title=title)
-bucket.savePickle(feedback.convertDictionary(), path='resource/ACNE04/Extraction/{}.pkl'.format(title))
+feedback = machine.evaluateIteration(loader=train.loader, title=title)
+bucket.savePickle(feedback.convertDictionary(), path='resource/ACNE04/Feedback/{}.pkl'.format(title))
 pass
 
 title = 'validation'
-feedback = machine.evaluateIteration(loader=loader.validation, title=title)
-bucket.savePickle(feedback.convertDictionary(), path='resource/ACNE04/Extraction/{}.pkl'.format(title))
+feedback = machine.evaluateIteration(loader=validation.loader, title=title)
+bucket.savePickle(feedback.convertDictionary(), path='resource/ACNE04/Feedback/{}.pkl'.format(title))
 pass
 
 title = 'test'
-feedback = machine.evaluateIteration(loader=loader.test, title=title)
-bucket.savePickle(feedback.convertDictionary(), path='resource/ACNE04/Extraction/{}.pkl'.format(title))
+feedback = machine.evaluateIteration(loader=test.loader, title=title)
+bucket.savePickle(feedback.convertDictionary(), path='resource/ACNE04/Feedback/{}.pkl'.format(title))
 pass

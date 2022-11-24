@@ -6,8 +6,18 @@ import os
 import PIL.Image
 import torchvision.transforms
 import PIL.Image
+import pickle
 
 createClass = lambda name: type(name, (), {})
+
+def loadPickle(path):
+
+    with open(path, 'rb') as paper:
+
+        content = pickle.load(paper)
+        pass
+
+    return(content)
 
 class Set(torch.utils.data.Dataset):
 
@@ -19,20 +29,27 @@ class Set(torch.utils.data.Dataset):
 
     def __getitem__(self, index):
 
-        item = self.table.loc[index]
+        item = {}
+        for key, value in self.concordance.items():
+
+            if(key=='image'):      item[key] = value[index:index+1]
+            if(key=='target'):     item[key] = value[index:index+1]
+            if(key=='extraction'): item[key] = value[index:index+1,:]
+            continue
+
+        item = item
         return(item)
     
     def __len__(self):
 
-        length = len(self.table)
+        key    = 'size'
+        length = sum(self.concordance[key])
         return(length)
 
     def LoadData(self):
 
-        ##  
-        path = self.configuration[self.title]['table']
-        table = pandas.read_csv(path)
-        self.table = table
+        path = self.configuration[self.title]['concordance']
+        self.concordance = loadPickle(path)
         return
 
     pass    
@@ -63,10 +80,15 @@ def collectBatch(iteration=None, configuration=None, inference=False, device='cp
 
     batch.image       = []
     batch.picture     = []
-    batch.feature     = []
+    batch.extraction  = []
     batch.target      = []
     # batch.attribution = []
     # batch.embedding   = []
+'image'
+'loss'
+'prediction'
+'target'
+'extraction'
     for number, item in enumerate(iteration):
         
         image = item['image']

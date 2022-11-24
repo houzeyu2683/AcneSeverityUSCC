@@ -136,6 +136,7 @@ class Machine:
         pass
 
         feedback = Feedback(title=title)
+        feedback.size       = iteration.size
         feedback.image      = iteration.image
         feedback.loss       = runMultiplication(iteration.loss, iteration.size) / sum(iteration.size)
         feedback.score      = numpy.concatenate(iteration.score, axis=0)

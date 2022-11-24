@@ -1,8 +1,6 @@
 
 # AcneSeverityNCKU
 
-資料以及模型[連結]
-
 2022/11/24
 
 檔案 `download.py` 可以下載當前專案使用的資料集。
