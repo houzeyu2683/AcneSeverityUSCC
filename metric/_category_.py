@@ -34,7 +34,8 @@ class Category:
 
     def getAreaUnderCurve(self):
 
-        assert len(set(self.target))==2, 'More than 2 classification.'
+        level = set(self.target)
+        assert len(level)==2, 'More than 2 classification.'
         measure = sklearn.metrics.roc_auc_score
         measurement = measure(y_true=self.target, y_score=self.score[:,1])
         result = float(round(measurement, 3))

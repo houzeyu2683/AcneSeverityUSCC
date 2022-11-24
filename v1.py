@@ -42,7 +42,7 @@ history    = checkpoint['history']
 best       = checkpoint['best']
 pass
 
-epoch = 2
+epoch = 10
 loop = range(epoch)
 for iteration in loop:
 
