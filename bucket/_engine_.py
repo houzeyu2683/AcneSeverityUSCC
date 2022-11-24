@@ -11,9 +11,10 @@ createClass = lambda name: type(name, (), {})
 
 class Set(torch.utils.data.Dataset):
 
-    def __init__(self, environment):
+    def __init__(self, configuration, title):
         
-        self.environment = environment
+        self.configuration = configuration
+        self.title = title
         return
 
     def __getitem__(self, index):
@@ -28,22 +29,24 @@ class Set(torch.utils.data.Dataset):
 
     def LoadData(self):
 
-        table = pandas.read_csv(self.environment['table'])
+        ##  
+        path = self.configuration[self.title]['table']
+        table = pandas.read_csv(path)
         self.table = table
         return
 
     pass    
 
-def createLoader(dataset=None, batch=32, inference=False, device='cpu'):
+def createLoader(set=None, batch=32, inference=False, device='cpu'):
 
-    environment = dataset.environment
+    configuration = set.configuration
     pass
 
     loader = torch.utils.data.DataLoader(
-        dataset=dataset, batch_size=batch, 
+        dataset=set, batch_size=batch, 
         shuffle=False if(inference) else True, 
         drop_last=False if(inference) else True, 
-        collate_fn=functools.partial(collectBatch, environment=environment, inference=inference, device=device)
+        collate_fn=functools.partial(collectBatch, configuration=configuration, inference=inference, device=device)
         )
     return(loader)
 
@@ -52,9 +55,10 @@ def getSample(loader):
     batch = next(iter(loader))
     return(batch)
 
-def collectBatch(iteration=None, environment=None, inference=False, device='cpu'):
+def collectBatch(iteration=None, configuration=None, inference=False, device='cpu'):
 
-    batch = createClass(name='batch')
+    Batch = createClass(name='Batch')
+    batch = Batch()
     # pass
 
     batch.image       = []
@@ -68,12 +72,12 @@ def collectBatch(iteration=None, environment=None, inference=False, device='cpu'
         image = item['image']
         pass
 
-        picture = loadPicture(environment['image'], image)
+        picture = loadPicture(configuration['image folder'], image)
         picture = transformPicture(picture, inference)
         picture = picture.unsqueeze(0)
         pass
 
-        target = environment['label'].get(item['label'])
+        target = configuration['label'].get(item['label'])
         target = torch.tensor(target)
         target = target.type(torch.LongTensor)
         target = target.unsqueeze(0)

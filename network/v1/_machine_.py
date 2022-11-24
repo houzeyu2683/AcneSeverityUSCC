@@ -68,7 +68,8 @@ class Machine:
 
     def learnIteration(self, loader=None):
     
-        iteration = createClass(name='iteration')
+        Iteration = createClass(name='Iteration')
+        iteration = Iteration()
         iteration.loss  = []
         iteration.size  = []
         pass
@@ -95,7 +96,6 @@ class Machine:
         pass
         
         ##
-        # feedback = createClass(name='feedback')
         feedback = Feedback(title='train')
         feedback.loss = runMultiplication(iteration.loss, iteration.size) / sum(iteration.size)
         return(feedback)
@@ -103,7 +103,8 @@ class Machine:
     @torch.no_grad()
     def evaluateIteration(self, loader=None, title=None):
 
-        iteration = createClass(name='iteration')
+        Iteration = createClass(name='Iteration')
+        iteration = Iteration()
         iteration.image      = []
         iteration.loss       = []
         iteration.size       = []
