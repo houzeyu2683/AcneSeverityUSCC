@@ -33,9 +33,14 @@ class Set(torch.utils.data.Dataset):
         for key, value in self.concordance.items():
 
             if(key=='image'):      item[key] = value[index:index+1]
+            if(key=='prediction'): item[key] = value[index:index+1]
             if(key=='target'):     item[key] = value[index:index+1]
             if(key=='extraction'): item[key] = value[index:index+1,:]
             continue
+        
+        selection = self.attributation['target']==item['target']
+        item['attributation'] = self.attributation.iloc[selection, :]
+        pass
 
         item = item
         return(item)
@@ -47,9 +52,17 @@ class Set(torch.utils.data.Dataset):
         return(length)
 
     def LoadData(self):
-
+        
         path = self.configuration[self.title]['concordance']
-        self.concordance = loadPickle(path)
+        concordance = loadPickle(path)
+        pass
+
+        path = self.configuration['attributation']
+        attributation = pandas.read_csv(path)
+        pass
+
+        self.concordance = concordance
+        self.attributation = attributation
         return
 
     pass    
@@ -72,54 +85,50 @@ def getSample(loader):
     batch = next(iter(loader))
     return(batch)
 
-def collectBatch(iteration=None, configuration=None, inference=False, device='cpu'):
+def collectBatch(iteration=None, configuration=None, inference=None, device='cpu'):
+
+    assert configuration==None, 'please set [configuration=None].'
+    pass
 
     Batch = createClass(name='Batch')
     batch = Batch()
-    # pass
+    pass
 
     batch.image       = []
-    batch.picture     = []
-    batch.extraction  = []
     batch.target      = []
-    # batch.attribution = []
-    # batch.embedding   = []
-'image'
-'loss'
-'prediction'
-'target'
-'extraction'
+    batch.prediction  = []
+    batch.extraction  = []
+    batch.attribution = []
     for number, item in enumerate(iteration):
         
         image = item['image']
         pass
 
-        picture = loadPicture(configuration['image folder'], image)
-        picture = transformPicture(picture, inference)
-        picture = picture.unsqueeze(0)
+        label = item['label']
         pass
 
-        target = configuration['label'].get(item['label'])
-        target = torch.tensor(target)
-        target = target.type(torch.LongTensor)
-        target = target.unsqueeze(0)
+        prediction = item['prediction']
         pass
 
-        batch.image   += [image]
-        batch.picture += [picture]
-        batch.target  += [target]
+        extraction = torch.tensor(item['extraction']).type(torch.FloatTensor)
+        pass
+        
+        attribution = torch.tensor(item['attribution']).type(torch.FloatTensor)
+        pass
+
+        batch.image       += [image]
+        batch.label       += [label]
+        batch.prediction  += [prediction]
+        batch.extraction  += [extraction]
+        batch.attribution += [attribution]
         continue
-
-    batch.iteration = iteration
-    batch.inference = inference
-    batch.device = device
-    batch.size = number + 1
-    batch.image = batch.image
-    pass
-
-    batch.picture = torch.cat(batch.picture, axis=0).to(device)
-    batch.target = torch.cat(batch.target, axis=0).to(device)
-    # batch.attribution = torch.cat(batch.attribution, axis=0).to(device)
+    
+    batch.inference   = inference
+    batch.size        = number + 1
+    batch.iteration   = iteration
+    batch.device      = device
+    batch.extraction  = torch.cat(batch.extraction, axis=0).to(device)
+    batch.attribution = torch.cat(batch.attribution, axis=0).to(device)
     return(batch)
 
 def loadPicture(folder, name):
