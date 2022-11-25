@@ -6,7 +6,7 @@ createClass = lambda name: type(name, (), {})
 
 class Encoder(torch.nn.Module):
 
-    def __init__(self):
+    def __init__(self, device='cpu'):
 
         super(Encoder, self).__init__()
         layer = {
@@ -26,6 +26,7 @@ class Encoder(torch.nn.Module):
             '2' : torch.nn.Linear(27, 128)
         }
         self.layer = torch.nn.ModuleDict(layer)
+        self.device = device
         pass
 
     def getEncoding(self, batch):
@@ -33,7 +34,7 @@ class Encoder(torch.nn.Module):
         Neuron = createClass(name='Neuron')
         pass
 
-        layer = self.layer
+        layer = self.layer.to(self.device)
         neuron = Neuron()
         pass
 
@@ -49,7 +50,7 @@ class Encoder(torch.nn.Module):
         Neuron = createClass(name='Neuron')
         pass
 
-        layer = self.layer
+        layer = self.layer.to(self.device)
         neuron = Neuron()
         pass
 
@@ -60,17 +61,10 @@ class Encoder(torch.nn.Module):
         pass
 
         mu, sigma = neuron.c1, neuron.c2
-        estimation = (encoding, mu, sigma)
+        estimation = (mu, sigma)
         return(estimation)
 
     def forwardProcedure(self, batch):
-
-        # Neuron = createClass(name='Neuron')
-        pass
-
-        # layer = self.layer
-        # neuron = Neuron()
-        pass
 
         encoding = self.getEncoding(batch)
         estimation = self.getEstimation(batch)
@@ -84,7 +78,7 @@ class Encoder(torch.nn.Module):
 ##
 class Decoder(torch.nn.Module):
 
-    def __init__(self):
+    def __init__(self, device):
 
         super(Decoder, self).__init__()
         layer = {
@@ -100,6 +94,7 @@ class Decoder(torch.nn.Module):
             )
         }
         self.layer = torch.nn.ModuleDict(layer)
+        self.device = device
         return
 
     def getDecoding(self, batch):
@@ -107,7 +102,7 @@ class Decoder(torch.nn.Module):
         Neuron = createClass(name='Neuron')
         pass
 
-        layer = self.layer
+        layer = self.layer.to(self.device)
         neuron = Neuron()
         pass
 
@@ -122,14 +117,21 @@ class Decoder(torch.nn.Module):
         decoding = neuron.c1
         return(decoding)
 
+    def forwardProcedure(self, batch):
+
+        decoding = self.getDecoding(batch)
+        return(decoding)
+
+    pass
+
 class Model(torch.nn.Module):
 
     def __init__(self, device='cpu'):
 
         super(Model, self).__init__()
+        self.encoder = Encoder(device=device)
+        self.decoder = Decoder(device=device)
         self.device  = device
-        self.encoder = Encoder()
-        self.decoder = Decoder()
         return
 
     """
@@ -155,10 +157,25 @@ class Model(torch.nn.Module):
         parameter = epsilon * deviation + mu
         return(parameter)
 
-    def forward(self, batch):
+    def getEncoding(self, batch):
 
-        self.encoder = self.encoder.to(self.device)
-        self.decoder = self.decoder.to(self.device)
+        encoding = self.encoder.getEncoding(batch)
+        return(encoding)
+
+    def forwardProcedure(self, batch):
+
+        encoding = self.getEncoding(batch)
+        pass
+
+        mu, sigma = self.encoder.getEstimation(batch)
+        estimation = (mu, sigma)
+        parameter  = self.runReparameterization(estimation)
+        pass
+
+        batch.code = parameter
+        decoding   = self.decoder.getDecoding(batch)
+
+        return(encoding, decoding, estimation)
         # mu, log_var = self.encode(input)
         # value = {
         #     "image":None,
@@ -166,24 +183,44 @@ class Model(torch.nn.Module):
         #     "log(sigma^2)":None,
         #     'reconstruction':None            
         # }
-        value = {}
-        value['feature'] = batch.feature
-        value['encode_feature'], value['mu'], value['sigma'] = self.encoder(batch)
-        batch.encode_feature = value['encode_feature']
-        # mu, log_var = self.encoder_layer(x)
-        z = self.reparameterize(value)
-        value['reconstruction'] = self.decoder(batch)
-        # return  [self.decode(z), input, mu, log_var]
-        return(value)
+        # value = {}
+        # value['feature'] = batch.extraction
+        # value['encode_feature'], value['mu'], value['sigma'] = self.encoder(batch)
+        # batch.encode_feature = value['encode_feature']
+        # # mu, log_var = self.encoder_layer(x)
+        # z = self.reparameterize(value)
+        # value['reconstruction'] = self.decoder(batch)
+        # # return  [self.decode(z), input, mu, log_var]
+        # return(value)
 
-    def cost(self, value):
+    def getCost(self, batch):
+
+        Cost     = createClass(name='Cost')
+        Criteria = createClass(name='Criteria')
+        cost     = Cost()
+        criteria = Criteria()
+        pass
+
+        criteria.reconstruction = torch.nn.MSELoss()
+        pass
+
+        encoding, decoding, estimation = self.forwardProcedure(batch)
+        mu, sigma = estimation
+        pass
+
+        divergence = - 0.5 * torch.sum(1 + sigma - (mu ** 2) - sigma.exp(), dim=1)
+        reconstruction = criteria.reconstruction(decoding, batch.extraction)
+        cost.divergence = torch.mean(divergence, dim=0)
+        cost.reconstruction = reconstruction
+        cost.loss = cost.divergence + cost.reconstruction
+        pass
+        
         """
         Computes the VAE loss function.
         KL(N(\mu, \sigma), N(0, 1)) = \log \frac{1}{\sigma} + \frac{\sigma^2 + \mu^2}{2} - \frac{1}{2}
         :param args:
         :param kwargs:
         :return:
-        """
         loss = {
             "kl-divergence":None,
             "reconstruction":None,
@@ -196,13 +233,15 @@ class Model(torch.nn.Module):
         loss['kl-divergence'] = torch.mean(divergence, dim = 0)
         loss['total'] = loss['reconstruction'] + weight['kl-divergence'] * loss['kl-divergence']
         return(loss)
-
-    def getCost(self, batch):
-
-        cost = createPack(name='cost')
-        value = self.forward(batch)
-        cost.loss = self.cost(value)
+        """
         return(cost)
+
+    # def getCost(self, batch):
+
+    #     cost = createPack(name='cost')
+    #     value = self.forward(batch)
+    #     cost.loss = self.cost(value)
+    #     return(cost)
     # def generate(self, number):
 
     #     device = "cuda" if next(self.decoder.parameters()).is_cuda else "cpu"

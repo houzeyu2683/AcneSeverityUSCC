@@ -30,16 +30,17 @@ class Set(torch.utils.data.Dataset):
     def __getitem__(self, index):
 
         item = {}
-        for key, value in self.concordance.items():
+        for key, value in self.dictionary.items():
 
-            if(key=='image'):      item[key] = value[index:index+1]
-            if(key=='prediction'): item[key] = value[index:index+1]
-            if(key=='target'):     item[key] = value[index:index+1]
-            if(key=='extraction'): item[key] = value[index:index+1,:]
+            if(key=='image'):      item[key] = value[index]
+            if(key=='prediction'): item[key] = value[index]
+            if(key=='extraction'): item[key] = value[index,:]
+            if(key=='target'):     item['label'] = value[index]
             continue
         
-        selection = self.attributation['target']==item['target']
-        item['attributation'] = self.attributation.iloc[selection, :]
+        row = self.table['label']==item['label']
+        column = ~self.table.columns.isin(['label'])
+        item['attribution'] = self.table.loc[row, column]
         pass
 
         item = item
@@ -48,21 +49,21 @@ class Set(torch.utils.data.Dataset):
     def __len__(self):
 
         key    = 'size'
-        length = sum(self.concordance[key])
+        length = sum(self.dictionary[key])
         return(length)
 
     def LoadData(self):
         
-        path = self.configuration[self.title]['concordance']
-        concordance = loadPickle(path)
+        path = self.configuration[self.title]['dictionary']
+        dictionary = loadPickle(path)
         pass
 
-        path = self.configuration['attributation']
-        attributation = pandas.read_csv(path)
+        path = self.configuration['attribution']['table']
+        table = pandas.read_csv(path)
         pass
 
-        self.concordance = concordance
-        self.attributation = attributation
+        self.dictionary = dictionary
+        self.table = table
         return
 
     pass    
@@ -85,17 +86,14 @@ def getSample(loader):
     batch = next(iter(loader))
     return(batch)
 
-def collectBatch(iteration=None, configuration=None, inference=None, device='cpu'):
-
-    assert configuration==None, 'please set [configuration=None].'
-    pass
+def collectBatch(iteration=None, configuration=None, inference=False, device='cpu'):
 
     Batch = createClass(name='Batch')
     batch = Batch()
     pass
 
     batch.image       = []
-    batch.target      = []
+    batch.label      = []
     batch.prediction  = []
     batch.extraction  = []
     batch.attribution = []
@@ -110,10 +108,10 @@ def collectBatch(iteration=None, configuration=None, inference=None, device='cpu
         prediction = item['prediction']
         pass
 
-        extraction = torch.tensor(item['extraction']).type(torch.FloatTensor)
+        extraction = torch.tensor(item['extraction']).unsqueeze(0).type(torch.FloatTensor)
         pass
-        
-        attribution = torch.tensor(item['attribution']).type(torch.FloatTensor)
+
+        attribution = torch.tensor(item['attribution'].values).type(torch.FloatTensor)
         pass
 
         batch.image       += [image]
@@ -123,10 +121,11 @@ def collectBatch(iteration=None, configuration=None, inference=None, device='cpu
         batch.attribution += [attribution]
         continue
     
-    batch.inference   = inference
-    batch.size        = number + 1
-    batch.iteration   = iteration
-    batch.device      = device
+    batch.configuration = configuration
+    batch.inference     = inference
+    batch.size          = number + 1
+    batch.iteration     = iteration
+    batch.device        = device
     batch.extraction  = torch.cat(batch.extraction, axis=0).to(device)
     batch.attribution = torch.cat(batch.attribution, axis=0).to(device)
     return(batch)
