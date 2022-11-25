@@ -38,8 +38,8 @@ class Set(torch.utils.data.Dataset):
             if(key=='target'):     item['label'] = value[index]
             continue
         
-        row = self.table['label']==item['label']
-        column = ~self.table.columns.isin(['label'])
+        row = self.table['target']==item['label']
+        column = ~self.table.columns.isin(['target'])
         item['attribution'] = self.table.loc[row, column]
         pass
 

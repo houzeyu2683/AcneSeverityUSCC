@@ -65,8 +65,6 @@ def collectBatch(iteration=None, configuration=None, inference=False, device='cp
     batch.picture     = []
     batch.feature     = []
     batch.target      = []
-    # batch.attribution = []
-    # batch.embedding   = []
     for number, item in enumerate(iteration):
         
         image = item['image']
@@ -90,9 +88,9 @@ def collectBatch(iteration=None, configuration=None, inference=False, device='cp
 
     batch.iteration = iteration
     batch.inference = inference
-    batch.device = device
-    batch.size = number + 1
-    batch.image = batch.image
+    batch.device    = device
+    batch.size      = number + 1
+    batch.image     = batch.image
     pass
 
     batch.picture = torch.cat(batch.picture, axis=0).to(device)

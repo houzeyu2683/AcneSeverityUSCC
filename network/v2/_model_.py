@@ -20,10 +20,10 @@ class Encoder(torch.nn.Module):
                 torch.nn.Linear(512, 256),
                 torch.nn.BatchNorm1d(256),
                 torch.nn.LeakyReLU(),
-                torch.nn.Linear(256, 27),
+                torch.nn.Linear(256, 24),
             ),
-            '1' : torch.nn.Linear(27, 128),
-            '2' : torch.nn.Linear(27, 128)
+            '1' : torch.nn.Linear(24, 128),
+            '2' : torch.nn.Linear(24, 128)
         }
         self.layer = torch.nn.ModuleDict(layer)
         self.device = device
@@ -83,7 +83,7 @@ class Decoder(torch.nn.Module):
         super(Decoder, self).__init__()
         layer = {
             "0" : torch.nn.Sequential(
-                torch.nn.Linear(27, 256),
+                torch.nn.Linear(128, 256),
                 torch.nn.Linear(256, 512),
                 torch.nn.BatchNorm1d(512),
                 torch.nn.LeakyReLU(),
@@ -105,9 +105,9 @@ class Decoder(torch.nn.Module):
         layer = self.layer.to(self.device)
         neuron = Neuron()
         pass
-
+        
         code = getattr(batch, 'code', None)
-        assert code, '[code] is None'
+        assert code!=None, '[code] is None'
         pass
 
         neuron.c0 = code
@@ -202,6 +202,7 @@ class Model(torch.nn.Module):
         pass
 
         criteria.reconstruction = torch.nn.MSELoss()
+        criteria.match = torch.nn.MSELoss()
         pass
 
         encoding, decoding, estimation = self.forwardProcedure(batch)
@@ -210,10 +211,12 @@ class Model(torch.nn.Module):
 
         divergence = - 0.5 * torch.sum(1 + sigma - (mu ** 2) - sigma.exp(), dim=1)
         reconstruction = criteria.reconstruction(decoding, batch.extraction)
+        cost.match = criteria.match(encoding, batch.attribution)
         cost.divergence = torch.mean(divergence, dim=0)
         cost.reconstruction = reconstruction
-        cost.loss = cost.divergence + cost.reconstruction
+        cost.loss = cost.divergence + cost.reconstruction + cost.match
         pass
+        
         
         """
         Computes the VAE loss function.

@@ -70,10 +70,8 @@ class Machine:
     
         Iteration = createClass(name='Iteration')
         iteration = Iteration()
-        iteration.loss  = []
+        iteration.cost  = []
         iteration.size  = []
-        iteration.divergence      = []
-        iteration.reconstruction  = []
         pass
 
         self.model.train()
@@ -86,13 +84,12 @@ class Machine:
             self.gradient.step()
             pass
 
-            description = "loss : {:.2f}, divergence : {:.2f}, reconstruction : {:.2f}".format(cost.loss.item(), cost.divergence.item(), cost.reconstruction.item())
+            message = "loss : {:.2f}, divergence : {:.2f}, reconstruction : {:.2f}, match : {:.2f}"
+            description = message.format(cost.loss.item(), cost.divergence.item(), cost.reconstruction.item(), cost.match.item())
             progress.set_description(description)
             pass
 
-            iteration.loss            += [cost.loss.item()]
-            iteration.divergence      += [cost.divergence.item()]
-            iteration.reconstruction  += [cost.reconstruction.item()]
+            iteration.cost  += [cost]
             iteration.size  += [batch.size]
             continue
         
@@ -100,10 +97,10 @@ class Machine:
         pass
         
         feedback = Feedback(title='train')
-        feedback.loss           = runMultiplication(iteration.loss, iteration.size) / sum(iteration.size)
-        feedback.divergence     = runMultiplication(iteration.divergence, iteration.size) / sum(iteration.size)
-        feedback.reconstruction = runMultiplication(iteration.reconstruction, iteration.size) / sum(iteration.size)
-        feedback.iteration      = iteration
+        feedback.loss           = runMultiplication([c.loss.item() for c in iteration.cost], iteration.size) / sum(iteration.size)
+        feedback.divergence     = runMultiplication([c.divergence.item() for c in iteration.cost], iteration.size) / sum(iteration.size)
+        feedback.reconstruction = runMultiplication([c.reconstruction.item() for c in iteration.cost], iteration.size) / sum(iteration.size)
+        feedback.match          = runMultiplication([c.match.item() for c in iteration.cost], iteration.size) / sum(iteration.size)
         return(feedback)
 
     @torch.no_grad()
@@ -113,56 +110,64 @@ class Machine:
         iteration = Iteration()
         pass
 
-        iteration.size             = []
-        iteration.image            = []
+        iteration.size        = []
+        iteration.image       = []
         pass
 
-        iteration.loss             = []
-        iteration.divergence       = []
-        iteration.reconstruction   = []
+        iteration.label       = []
+        iteration.prediction  = []
         pass
 
-        iteration.extraction       = []
-        iteration.decoding         = []
+        iteration.extraction  = []
+        iteration.decoding    = []
         pass
 
-        iteration.prediction       = []
-        iteration.label            = []
+        iteration.encoding    = []
+        iteration.attribution = []
         pass
 
-        iteration.encoding         = []
-        iteration.attribution      = []
+        iteration.cost        = []
         pass
 
         self.model.eval()
         progress = tqdm.tqdm(loader, leave=False)
         for batch in progress:
 
-            encoding  = self.model.encoder.getEncoding(batch)
-            score     = self.model.getScore(batch)
-            cost      = self.model.getCost(batch)
+            encoding, decoding, _  = self.model.forwardProcedure(batch)
+            cost  = self.model.getCost(batch)
             pass
 
-            iteration.image      += [batch.image]
-            iteration.size       += [batch.size]
-            iteration.target     += [batch.target.cpu().numpy()]
-            iteration.score      += [score.cpu().numpy()]
-            iteration.prediction += [score.cpu().numpy().argmax(1)]
-            iteration.loss       += [cost.loss.item()]
-            iteration.extraction += [extraction.cpu().numpy()]
+            iteration.cost        += [cost]
+            iteration.image       += [batch.image]
+            iteration.size        += [batch.size]
+            iteration.label       += [batch.label]
+            iteration.prediction  += [batch.prediction]
+            iteration.extraction  += [batch.extraction]
+            iteration.decoding    += [decoding]
+            iteration.attribution += [batch.attribution]
+            iteration.encoding    += [encoding]
             continue
         
         iteration.image = sum(iteration.image, [])
+        iteration.label = sum(iteration.label, [])
+        iteration.prediction = sum(iteration.prediction, [])
         pass
 
         feedback = Feedback(title=title)
+        feedback.cost = {
+            "loss": runMultiplication([c.loss.item() for c in iteration.cost], iteration.size) / sum(iteration.size),
+            "divergence": runMultiplication([c.divergence.item() for c in iteration.cost], iteration.size) / sum(iteration.size),
+            "reconstruction" : runMultiplication([c.reconstruction.item() for c in iteration.cost], iteration.size) / sum(iteration.size),
+            "match": runMultiplication([c.match.item() for c in iteration.cost], iteration.size) / sum(iteration.size)
+        }
         feedback.size       = iteration.size
         feedback.image      = iteration.image
-        feedback.loss       = runMultiplication(iteration.loss, iteration.size) / sum(iteration.size)
-        feedback.score      = numpy.concatenate(iteration.score, axis=0)
-        feedback.prediction = numpy.concatenate(iteration.prediction, axis=-1)
-        feedback.target     = numpy.concatenate(iteration.target, axis=-1)
-        feedback.extraction = numpy.concatenate(iteration.extraction, axis=0)
+        feedback.label      = iteration.label
+        feedback.prediction = iteration.prediction
+        feedback.extraction  = torch.concat(iteration.extraction, dim=0).detach().cpu().numpy()
+        feedback.decoding    = torch.concat(iteration.decoding, dim=0).detach().cpu().numpy()
+        feedback.attribution = torch.concat(iteration.attribution, dim=0).detach().cpu().numpy()
+        feedback.encoding    = torch.concat(iteration.encoding, dim=0).detach().cpu().numpy()
         return(feedback)
 
     def saveWeight(self, path):

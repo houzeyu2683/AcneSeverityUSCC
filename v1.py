@@ -4,6 +4,7 @@ import network
 import metric
 
 configuration = bucket.v1.loadYaml(path='configuration.yaml')
+configuration = configuration['v1']
 pass
 
 Train      = bucket.v1.createClass('Train')
@@ -38,11 +39,12 @@ machine.defineOptimization(method='adam')
 pass
 
 checkpoint = bucket.v1.loadYaml(path='checkpoint.yaml')
+checkpoint = checkpoint['v1']
 history    = checkpoint['history']
 best       = checkpoint['best']
 pass
 
-epoch = 10
+epoch = 20
 loop = range(epoch)
 for iteration in loop:
 
@@ -99,7 +101,7 @@ destination = "{}/{}/".format(checkpoint['path'], 'best')
 bucket.v1.copyFolder(source=source, destination=destination)
 pass
 
-##  Save the extraction.
+##  Reload the model and save the necessary thing.
 train.loader = bucket.v1.createLoader(set=train.set, batch=1, inference=True, device='cuda')
 validation.loader = bucket.v1.createLoader(set=validation.set, batch=1, inference=True, device='cuda')
 test.loader = bucket.v1.createLoader(set=test.set, batch=1, inference=True, device='cuda')
@@ -109,15 +111,15 @@ pass
 
 title = 'train'
 feedback = machine.evaluateIteration(loader=train.loader, title=title)
-bucket.v1.savePickle(feedback.convertDictionary(), path='resource/ACNE04/v1/{}.pkl'.format(title))
+bucket.v1.savePickle(feedback.convertDictionary(), path='resource/ACNE04/Feedback/V1/{}.pkl'.format(title))
 pass
 
 title = 'validation'
 feedback = machine.evaluateIteration(loader=validation.loader, title=title)
-bucket.v1.savePickle(feedback.convertDictionary(), path='resource/ACNE04/v1/{}.pkl'.format(title))
+bucket.v1.savePickle(feedback.convertDictionary(), path='resource/ACNE04/Feedback/V1/{}.pkl'.format(title))
 pass
 
 title = 'test'
 feedback = machine.evaluateIteration(loader=test.loader, title=title)
-bucket.v1.savePickle(feedback.convertDictionary(), path='resource/ACNE04/v1/{}.pkl'.format(title))
+bucket.v1.savePickle(feedback.convertDictionary(), path='resource/ACNE04/Feedback/V1/{}.pkl'.format(title))
 pass

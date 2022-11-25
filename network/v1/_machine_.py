@@ -123,12 +123,12 @@ class Machine:
             cost       = self.model.getCost(batch)
             pass
 
+            iteration.cost       += [cost]
             iteration.image      += [batch.image]
             iteration.size       += [batch.size]
             iteration.target     += [batch.target.cpu().numpy()]
             iteration.score      += [score.cpu().numpy()]
             iteration.prediction += [score.cpu().numpy().argmax(1)]
-            iteration.loss       += [cost.loss.item()]
             iteration.extraction += [extraction.cpu().numpy()]
             continue
         
@@ -136,9 +136,11 @@ class Machine:
         pass
 
         feedback = Feedback(title=title)
+        feedback.cost = {
+            "loss": runMultiplication([c.loss.item() for c in iteration.cost], iteration.size) / sum(iteration.size)
+        }        
         feedback.size       = iteration.size
         feedback.image      = iteration.image
-        feedback.loss       = runMultiplication(iteration.loss, iteration.size) / sum(iteration.size)
         feedback.score      = numpy.concatenate(iteration.score, axis=0)
         feedback.prediction = numpy.concatenate(iteration.prediction, axis=-1)
         feedback.target     = numpy.concatenate(iteration.target, axis=-1)
