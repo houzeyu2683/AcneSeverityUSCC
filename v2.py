@@ -3,18 +3,18 @@ import bucket
 import network
 import metric
 
-configuration = bucket.loadYaml(path='configuration.yaml')
+configuration = bucket.v2.loadYaml(path='configuration.yaml')
 pass
 
-Train      = bucket.createClass('Train')
-Validation = bucket.createClass('Validation')
-Test       = bucket.createClass('Test')
+Train      = bucket.v2.createClass('Train')
+Validation = bucket.v2.createClass('Validation')
+Test       = bucket.v2.createClass('Test')
 train, validation, test = Train(), Validation(), Test()
 pass
 
-train.set      = bucket.Set(configuration, 'train')
-validation.set = bucket.Set(configuration, 'validation')
-test.set       = bucket.Set(configuration, 'test')
+train.set      = bucket.v2.Set(configuration, 'train')
+validation.set = bucket.v2.Set(configuration, 'validation')
+test.set       = bucket.v2.Set(configuration, 'test')
 pass
 
 train.set.LoadData()
@@ -22,9 +22,9 @@ validation.set.LoadData()
 test.set.LoadData()
 pass
 
-train.loader      = bucket.createLoader(set=train.set, batch=32, inference=False, device='cuda')
-validation.loader = bucket.createLoader(set=validation.set, batch=16, inference=True, device='cuda')
-test.loader       = bucket.createLoader(set=test.set, batch=16, inference=True, device='cuda')
+train.loader      = bucket.createLoader(set=train.set, batch=32, inference=False, device='cpu')
+validation.loader = bucket.createLoader(set=validation.set, batch=16, inference=True, device='cpu')
+test.loader       = bucket.createLoader(set=test.set, batch=16, inference=True, device='cpu')
 pass
 
 train.sample      = bucket.getSample(train.loader)
@@ -32,7 +32,7 @@ validation.sample = bucket.getSample(validation.loader)
 test.sample       = bucket.getSample(test.loader)
 pass
 
-model = network.v1.Model(backbone='resnet', classification=2, device='cuda')
+model = network.v2.Model(device='cuda')
 machine = network.v1.Machine(model=model)
 machine.defineOptimization(method='adam')
 pass

@@ -72,6 +72,8 @@ class Machine:
         iteration = Iteration()
         iteration.loss  = []
         iteration.size  = []
+        iteration.divergence      = []
+        iteration.reconstruction  = []
         pass
 
         self.model.train()
@@ -84,20 +86,24 @@ class Machine:
             self.gradient.step()
             pass
 
-            description = "loss : {:.2f}".format(cost.loss.item())
+            description = "loss : {:.2f}, divergence : {:.2f}, reconstruction : {:.2f}".format(cost.loss.item(), cost.divergence.item(), cost.reconstruction.item())
             progress.set_description(description)
             pass
 
-            iteration.loss  += [cost.loss.item()]
+            iteration.loss            += [cost.loss.item()]
+            iteration.divergence      += [cost.divergence.item()]
+            iteration.reconstruction  += [cost.reconstruction.item()]
             iteration.size  += [batch.size]
             continue
         
         self.schedule.step()    
         pass
         
-        ##
         feedback = Feedback(title='train')
-        feedback.loss = runMultiplication(iteration.loss, iteration.size) / sum(iteration.size)
+        feedback.loss           = runMultiplication(iteration.loss, iteration.size) / sum(iteration.size)
+        feedback.divergence     = runMultiplication(iteration.divergence, iteration.size) / sum(iteration.size)
+        feedback.reconstruction = runMultiplication(iteration.reconstruction, iteration.size) / sum(iteration.size)
+        feedback.iteration      = iteration
         return(feedback)
 
     @torch.no_grad()
@@ -105,22 +111,36 @@ class Machine:
 
         Iteration = createClass(name='Iteration')
         iteration = Iteration()
-        iteration.image      = []
-        iteration.loss       = []
-        iteration.size       = []
-        iteration.extraction = []
-        iteration.score      = []
-        iteration.prediction = []
-        iteration.target     = []
+        pass
+
+        iteration.size             = []
+        iteration.image            = []
+        pass
+
+        iteration.loss             = []
+        iteration.divergence       = []
+        iteration.reconstruction   = []
+        pass
+
+        iteration.extraction       = []
+        iteration.decoding         = []
+        pass
+
+        iteration.prediction       = []
+        iteration.label            = []
+        pass
+
+        iteration.encoding         = []
+        iteration.attribution      = []
         pass
 
         self.model.eval()
         progress = tqdm.tqdm(loader, leave=False)
         for batch in progress:
 
-            extraction = self.model.getExtraction(batch)
-            score      = self.model.getScore(batch)
-            cost       = self.model.getCost(batch)
+            encoding  = self.model.encoder.getEncoding(batch)
+            score     = self.model.getScore(batch)
+            cost      = self.model.getCost(batch)
             pass
 
             iteration.image      += [batch.image]
