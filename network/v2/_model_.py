@@ -202,7 +202,7 @@ class Model(torch.nn.Module):
         pass
 
         criteria.reconstruction = torch.nn.MSELoss()
-        criteria.match = torch.nn.MSELoss()
+        criteria.projection = torch.nn.MSELoss()
         pass
 
         encoding, decoding, estimation = self.forwardProcedure(batch)
@@ -211,10 +211,10 @@ class Model(torch.nn.Module):
 
         divergence = - 0.5 * torch.sum(1 + sigma - (mu ** 2) - sigma.exp(), dim=1)
         reconstruction = criteria.reconstruction(decoding, batch.extraction)
-        cost.match = criteria.match(encoding, batch.attribution)
+        cost.projection = criteria.projection(encoding, batch.attribution)
         cost.divergence = torch.mean(divergence, dim=0)
         cost.reconstruction = reconstruction
-        cost.loss = cost.divergence + cost.reconstruction + cost.match
+        cost.loss = cost.divergence + cost.reconstruction + cost.projection
         pass
         
         

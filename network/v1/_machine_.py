@@ -70,7 +70,7 @@ class Machine:
     
         Iteration = createClass(name='Iteration')
         iteration = Iteration()
-        iteration.loss  = []
+        iteration.cost  = []
         iteration.size  = []
         pass
 
@@ -88,17 +88,20 @@ class Machine:
             progress.set_description(description)
             pass
 
-            iteration.loss  += [cost.loss.item()]
+            iteration.cost  += [cost]
             iteration.size  += [batch.size]
             continue
         
         self.schedule.step()    
-        pass
+        # pass
         
-        ##
-        feedback = Feedback(title='train')
-        feedback.loss = runMultiplication(iteration.loss, iteration.size) / sum(iteration.size)
-        return(feedback)
+        # ##
+        # feedback = Feedback(title='train')
+        # feedback.cost = {
+        #     "loss": runMultiplication([c.loss.item() for c in iteration.cost], iteration.size) / sum(iteration.size)
+        # }            
+        # return(feedback)
+        return
 
     @torch.no_grad()
     def evaluateIteration(self, loader=None, title=None):
@@ -106,12 +109,12 @@ class Machine:
         Iteration = createClass(name='Iteration')
         iteration = Iteration()
         iteration.image      = []
-        iteration.loss       = []
         iteration.size       = []
         iteration.extraction = []
         iteration.score      = []
         iteration.prediction = []
         iteration.target     = []
+        iteration.cost       = []
         pass
 
         self.model.eval()
@@ -136,15 +139,18 @@ class Machine:
         pass
 
         feedback = Feedback(title=title)
-        feedback.cost = {
-            "loss": runMultiplication([c.loss.item() for c in iteration.cost], iteration.size) / sum(iteration.size)
-        }        
         feedback.size       = iteration.size
         feedback.image      = iteration.image
         feedback.score      = numpy.concatenate(iteration.score, axis=0)
         feedback.prediction = numpy.concatenate(iteration.prediction, axis=-1)
         feedback.target     = numpy.concatenate(iteration.target, axis=-1)
         feedback.extraction = numpy.concatenate(iteration.extraction, axis=0)
+        pass
+        
+        loss = [c.loss.item() for c in iteration.cost]
+        feedback.cost = {
+            "loss": runMultiplication(loss, iteration.size) / sum(iteration.size)
+        }        
         return(feedback)
 
     def saveWeight(self, path):

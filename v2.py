@@ -60,7 +60,7 @@ for iteration in loop:
     history[title]['cost']['loss']           += [feedback.cost['loss']]
     history[title]['cost']['divergence']     += [feedback.cost['divergence']]
     history[title]['cost']['reconstruction'] += [feedback.cost['reconstruction']]
-    history[title]['cost']['match']          += [feedback.cost['match']]
+    history[title]['cost']['projection']     += [feedback.cost['projection']]
     pass
 
     ##  Evaluate validation data.
@@ -69,7 +69,7 @@ for iteration in loop:
     history[title]['cost']['loss']           += [feedback.cost['loss']]
     history[title]['cost']['divergence']     += [feedback.cost['divergence']]
     history[title]['cost']['reconstruction'] += [feedback.cost['reconstruction']]
-    history[title]['cost']['match']          += [feedback.cost['match']]
+    history[title]['cost']['projection']     += [feedback.cost['projection']]
     pass
 
     ##  Evaluate test data.
@@ -78,7 +78,7 @@ for iteration in loop:
     history[title]['cost']['loss']           += [feedback.cost['loss']]
     history[title]['cost']['divergence']     += [feedback.cost['divergence']]
     history[title]['cost']['reconstruction'] += [feedback.cost['reconstruction']]
-    history[title]['cost']['match']          += [feedback.cost['match']]
+    history[title]['cost']['projection']     += [feedback.cost['projection']]
     continue
 
 ##  Find the best checkpoint.

@@ -2,19 +2,25 @@ v1: {
   path: "models/image-classifier/checkpoint/",
   history: {
     train: {
-      loss: [],
+      cost: {
+        loss: []
+      },
       confusion table: [],
       accuracy: [],
       area under curve: []
     },
     validation: {
-      loss: [],
+      cost: {
+        loss: []
+      },
       confusion table: [],
       accuracy: [],
       area under curve: []
     },
     test: {
-      loss: [],
+      cost: {
+        loss: []
+      },
       confusion table: [],
       accuracy: [],
       area under curve: []
@@ -34,7 +40,7 @@ v2: {
         loss: [],
         divergence: [],
         reconstruction: [],
-        match: []
+        projection: []
       }
     },
     validation: {
@@ -42,7 +48,7 @@ v2: {
         loss: [],
         divergence: [],
         reconstruction: [],
-        match: []
+        projection: []
       }
     },
     test: {
@@ -50,13 +56,13 @@ v2: {
         loss: [],
         divergence: [],
         reconstruction: [],
-        match: []
+        projection: []
       }
     }
   },
   best: {
     focus: "test",
-    metric: "match",
+    metric: "projection",
     checkpoint: NULL
   }  
 }

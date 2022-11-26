@@ -61,7 +61,7 @@ for iteration in loop:
     history[title]['accuracy']         += [category.getAccuracy()]
     history[title]['confusion table']  += [category.getConfusionTable()]
     history[title]['area under curve'] += [category.getAreaUnderCurve()]
-    history[title]['loss'] += [feedback.loss]
+    history[title]['cost']['loss']     += [feedback.cost['loss']]
     pass
 
     ##  Evaluate validation data.
@@ -71,7 +71,7 @@ for iteration in loop:
     history[title]['accuracy']         += [category.getAccuracy()]
     history[title]['confusion table']  += [category.getConfusionTable()]
     history[title]['area under curve'] += [category.getAreaUnderCurve()]
-    history[title]['loss'] += [feedback.loss]
+    history[title]['cost']['loss']     += [feedback.cost['loss']]
     pass
 
     ##  Evaluate test data.
@@ -81,7 +81,7 @@ for iteration in loop:
     history[title]['accuracy']         += [category.getAccuracy()]
     history[title]['confusion table']  += [category.getConfusionTable()]
     history[title]['area under curve'] += [category.getAreaUnderCurve()]
-    history[title]['loss'] += [feedback.loss]
+    history[title]['cost']['loss']     += [feedback.cost['loss']]
     continue
 
 ##  Find the best.
