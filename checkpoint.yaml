@@ -37,33 +37,90 @@ v2: {
   history: {
     train: {
       cost: {
-        loss: [],
-        divergence: [],
-        reconstruction: [],
-        projection: []
+        iteration: {
+          loss: [],
+          divergence: [],
+          reconstruction: [],
+          projection: []
+        },
+        epoch: {
+          loss: [],
+          divergence: [],
+          reconstruction: [],
+          projection: []
+        }
       }
     },
     validation: {
       cost: {
-        loss: [],
-        divergence: [],
-        reconstruction: [],
-        projection: []
+        iteration: {
+          loss: [],
+          divergence: [],
+          reconstruction: [],
+          projection: []
+        },
+        epoch: {
+          loss: [],
+          divergence: [],
+          reconstruction: [],
+          projection: []
+        }    
       }
     },
     test: {
       cost: {
-        loss: [],
-        divergence: [],
-        reconstruction: [],
-        projection: []
+        iteration: {
+          loss: [],
+          divergence: [],
+          reconstruction: [],
+          projection: []
+        },
+        epoch: {
+          loss: [],
+          divergence: [],
+          reconstruction: [],
+          projection: []
+        }
       }
     }
   },
   best: {
     focus: "test",
-    metric: "projection",
+    metric: "divergence",
     checkpoint: NULL
   }  
 }
-  
+v3: {
+  path: "models/image-vae-classifier/checkpoint/",
+  history: {
+    train: {
+      cost: {
+        loss: []
+      },
+      confusion table: [],
+      accuracy: [],
+      area under curve: []
+    },
+    validation: {
+      cost: {
+        loss: []
+      },
+      confusion table: [],
+      accuracy: [],
+      area under curve: []
+    },
+    test: {
+      cost: {
+        loss: []
+      },
+      confusion table: [],
+      accuracy: [],
+      area under curve: []
+    }      
+  },
+  best: {
+    focus: "test",
+    metric: "accuracy",
+    checkpoint: NULL
+  }
+}  

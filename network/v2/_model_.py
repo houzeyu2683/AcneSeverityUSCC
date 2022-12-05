@@ -21,6 +21,7 @@ class Encoder(torch.nn.Module):
                 torch.nn.BatchNorm1d(256),
                 torch.nn.LeakyReLU(),
                 torch.nn.Linear(256, 24),
+                torch.nn.Sigmoid(),
             ),
             '1' : torch.nn.Linear(24, 128),
             '2' : torch.nn.Linear(24, 128)

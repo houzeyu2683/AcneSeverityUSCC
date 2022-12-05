@@ -3,7 +3,7 @@ models/
 resource/
 *zip
 environment
-backup/
+bk/
 *pt
 output/*.pt
 
