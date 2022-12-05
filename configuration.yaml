@@ -33,7 +33,7 @@ v2: {
     3: 1
   },
   attribution: {
-    table: './resource/ACNE04/attribution.csv'
+    table: './resource/ACNE04/label_code_attri.csv'
   },
   train: {
     # table: "./resource/ACNE04/Classification/NNEW_train_0.csv",

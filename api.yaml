@@ -1,0 +1,13 @@
+image-classifier: {
+  path: './models/image-classifier/checkpoint/best/model.pt',
+  url: "https://drive.google.com/uc?id=1aQX9wONIu_NrN87f_30K-cmU_wyN67_i"
+}
+image-embedding: {
+  path: './models/image-embedding/checkpoint/best/model.pt',
+  url: "https://drive.google.com/uc?id=1JeYwmLLndHjLgwQjRK1MRWt-lG_41_z1"
+}
+
+demo: {
+  higher: './demo/levle3_91.jpg',
+  lower: './demo/levle0_0.jpg'
+}

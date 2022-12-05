@@ -99,7 +99,7 @@ pass
 bucket.v3.saveYaml(content=best, path="{}/best.yaml".format(checkpoint['path']))
 source = "{}/{}/".format(checkpoint['path'], best['checkpoint'])
 destination = "{}/{}/".format(checkpoint['path'], 'best')
-bucket.v1.copyFolder(source=source, destination=destination)
+bucket.v3.copyFolder(source=source, destination=destination)
 pass
 
 '''

@@ -20,11 +20,11 @@ class Encoder(torch.nn.Module):
                 torch.nn.Linear(512, 256),
                 torch.nn.BatchNorm1d(256),
                 torch.nn.LeakyReLU(),
-                torch.nn.Linear(256, 24),
+                torch.nn.Linear(256, 8),
                 torch.nn.Sigmoid(),
             ),
-            '1' : torch.nn.Linear(24, 128),
-            '2' : torch.nn.Linear(24, 128)
+            '1' : torch.nn.Linear(8, 128),
+            '2' : torch.nn.Linear(8, 128)
         }
         self.layer = torch.nn.ModuleDict(layer)
         self.device = device
@@ -203,7 +203,7 @@ class Model(torch.nn.Module):
         pass
 
         criteria.reconstruction = torch.nn.MSELoss()
-        criteria.projection = torch.nn.MSELoss()
+        criteria.projection = torch.nn.L1Loss()
         pass
 
         encoding, decoding, estimation = self.forwardProcedure(batch)
@@ -215,7 +215,7 @@ class Model(torch.nn.Module):
         cost.projection = criteria.projection(encoding, batch.attribution)
         cost.divergence = torch.mean(divergence, dim=0)
         cost.reconstruction = reconstruction
-        cost.loss = cost.divergence + cost.reconstruction + cost.projection
+        cost.loss = 0.5*cost.divergence + 0.5*cost.reconstruction + 2*cost.projection
         pass
         
         

@@ -13,7 +13,7 @@ class Model(torch.nn.Module):
         pass
         layer = {}
         layer['0'] = torch.nn.Sequential(
-            torch.nn.Linear(2048+24, 1024), 
+            torch.nn.Linear(2048+8, 1024), 
             torch.nn.BatchNorm1d(1024),
             torch.nn.ReLU(),
             torch.nn.Linear(1024, 512), 
