@@ -7,23 +7,24 @@ import pprint
 import sys
 import sklearn.metrics
 
-createClass = lambda name: type(name, (), {})
-runMultiplication = lambda x, y: sum([l*r for l, r in zip(x, y)])
+createClass = lambda name: type(name, (), {'getDictionary':lambda self: dict(vars(self))})
+# runDotMultiplication = lambda x, y: sum([l*r for l, r in zip(x, y)])
+getAverageWeightedSum = lambda number, score, weight: sum([s * w for s, w in zip(score, weight)]) / number
 
-class Feedback:
+# class Feedback:
 
-    def __init__(self, title=None):
+#     def __init__(self, title=None):
 
-        self.title = title
-        return
+#         self.title = title
+#         return
 
-    def convertDictionary(self):
+#     def convertDictionary(self):
 
-        variable = vars(self)
-        dictionary = dict(variable)
-        return(dictionary)
+#         variable = vars(self)
+#         dictionary = dict(variable)
+#         return(dictionary)
 
-    pass
+#     pass
 
 class Machine:
 
@@ -70,8 +71,15 @@ class Machine:
     
         Iteration = createClass(name='Iteration')
         iteration = Iteration()
-        iteration.cost  = []
-        iteration.size  = []
+        iteration.number = 0
+        iteration.size   = []
+        iteration.cost      = {
+            "loss":[],
+            "divergence":[],
+            'reconstruction':[],
+            'projection':[]
+        }
+
         pass
 
         self.model.train()
@@ -89,23 +97,25 @@ class Machine:
             progress.set_description(description)
             pass
 
-            iteration.cost  += [cost]
-            iteration.size  += [batch.size]
+            iteration.size   += [batch.size]
+            iteration.number += batch.size
+            iteration.cost["loss"]            += [cost.loss.item()]
+            iteration.cost["divergence"]      += [cost.divergence.item()]
+            iteration.cost["reconstruction"]  += [cost.reconstruction.item()]
+            iteration.cost["projection"]      += [cost.projection.item()]
             continue
-        
-        self.schedule.step()    
-        pass
-        
-        feedback = Feedback(title='train')
-        loss = [c.loss.item() for c in iteration.cost]
-        divergence = [c.divergence.item() for c in iteration.cost]
-        restruction = [c.reconstruction.item() for c in iteration.cost]
-        projection = [c.projection.item() for c in iteration.cost]
+
+        self.schedule.step()
+        Feedback = createClass(name='Feedback')
+        feedback = Feedback()
         feedback.cost = {
-            "loss": runMultiplication(loss, iteration.size) / sum(iteration.size),
-            "divergence": runMultiplication(divergence, iteration.size) / sum(iteration.size),
-            "reconstruction" : runMultiplication(restruction, iteration.size) / sum(iteration.size),
-            "projection": runMultiplication(projection, iteration.size) / sum(iteration.size)
+            'epoch':{
+                "loss"           : getAverageWeightedSum(iteration.number, iteration.cost['loss']          , iteration.size),
+                "divergence"     : getAverageWeightedSum(iteration.number, iteration.cost['divergence']    , iteration.size),
+                "reconstruction" : getAverageWeightedSum(iteration.number, iteration.cost['reconstruction'], iteration.size),
+                "projection"     : getAverageWeightedSum(iteration.number, iteration.cost['projection']    , iteration.size)
+            },
+            'iteration': iteration.cost
         }
         return(feedback)
 
@@ -116,6 +126,7 @@ class Machine:
         iteration = Iteration()
         pass
 
+        iteration.number      = 0
         iteration.size        = []
         iteration.image       = []
         iteration.label       = []
@@ -124,7 +135,12 @@ class Machine:
         iteration.decoding    = []
         iteration.encoding    = []
         iteration.attribution = []
-        iteration.cost        = []
+        iteration.cost        = {
+            "loss":[],
+            "divergence":[],
+            'reconstruction':[],
+            'projection':[]
+        }
         pass
 
         self.model.eval()
@@ -135,6 +151,8 @@ class Machine:
             cost  = self.model.getCost(batch)
             pass
 
+            iteration.number      += batch.size
+            iteration.size        += [batch.size]
             iteration.image       += [batch.image]
             iteration.size        += [batch.size]
             iteration.label       += [batch.label]
@@ -143,34 +161,32 @@ class Machine:
             iteration.decoding    += [decoding]
             iteration.attribution += [batch.attribution]
             iteration.encoding    += [encoding]
-            iteration.cost        += [cost]
+            iteration.cost["loss"]            += [cost.loss.item()]
+            iteration.cost["divergence"]      += [cost.divergence.item()]
+            iteration.cost["reconstruction"]  += [cost.reconstruction.item()]
+            iteration.cost["projection"]      += [cost.projection.item()]
             continue
-        
-        iteration.image      = sum(iteration.image, [])
-        iteration.label      = sum(iteration.label, [])
-        iteration.prediction = sum(iteration.prediction, [])
-        pass
 
-        feedback = Feedback(title=title)
-        feedback.size       = iteration.size
-        feedback.image      = iteration.image
-        feedback.label      = iteration.label
-        feedback.prediction = iteration.prediction
-        feedback.extraction  = torch.concat(iteration.extraction, dim=0).detach().cpu().numpy()
-        feedback.decoding    = torch.concat(iteration.decoding, dim=0).detach().cpu().numpy()
-        feedback.attribution = torch.concat(iteration.attribution, dim=0).detach().cpu().numpy()
-        feedback.encoding    = torch.concat(iteration.encoding, dim=0).detach().cpu().numpy()
-        pass
-
-        loss = [c.loss.item() for c in iteration.cost]
-        divergence = [c.divergence.item() for c in iteration.cost]
-        restruction = [c.reconstruction.item() for c in iteration.cost]
-        projection = [c.projection.item() for c in iteration.cost]
+        Feedback = createClass(name='Feedback')
+        feedback = Feedback()
         feedback.cost = {
-            "loss": runMultiplication(loss, iteration.size) / sum(iteration.size),
-            "divergence": runMultiplication(divergence, iteration.size) / sum(iteration.size),
-            "reconstruction" : runMultiplication(restruction, iteration.size) / sum(iteration.size),
-            "projection": runMultiplication(projection, iteration.size) / sum(iteration.size)
+            'epoch':{
+                "loss"           : getAverageWeightedSum(iteration.number, iteration.cost['loss']          , iteration.size),
+                "divergence"     : getAverageWeightedSum(iteration.number, iteration.cost['divergence']    , iteration.size),
+                "reconstruction" : getAverageWeightedSum(iteration.number, iteration.cost['reconstruction'], iteration.size),
+                "projection"     : getAverageWeightedSum(iteration.number, iteration.cost['projection']    , iteration.size)
+            },
+            'iteration': iteration.cost
+        }
+        feedback.information = {
+            'image'       : sum(iteration.image, []),
+            'label'       : sum(iteration.label, []),
+            'prediction'  : sum(iteration.prediction, []),
+            'extraction'  : torch.concat(iteration.extraction, dim=0).detach().cpu().numpy(),
+            'encoding'    : torch.concat(iteration.encoding, dim=0).detach().cpu().numpy(),
+            'decoding'    : torch.concat(iteration.decoding, dim=0).detach().cpu().numpy(),
+            'attribution' : torch.concat(iteration.attribution, dim=0).detach().cpu().numpy(),
+            'length': iteration.number
         }
         return(feedback)
 

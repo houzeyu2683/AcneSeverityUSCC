@@ -19,7 +19,8 @@ v1: {
   },
   test: {
     table: "./resource/ACNE04/Classification/NNEW_test_0.csv",
-  } 
+  },
+  device: 'cpu'
 }
 
 v2: {
@@ -45,5 +46,33 @@ v2: {
   test: {
     table: "./resource/ACNE04/Classification/NNEW_test_0.csv",
     dictionary: "./resource/ACNE04/Feedback/V1/test.pkl"
-  } 
+  },
+  device: 'cpu'
+}
+
+v3: {
+  description: '主要用於導入 class embedding 的屬性特徵，實驗是否提高原來分類的準確度。',
+  # image: "./resource/ACNE04/Classification/JPEGImages/",
+  # label: {
+  #   0: 0, 
+  #   1: 1, 
+  #   2: 1, 
+  #   3: 1
+  # },
+  # attribution: {
+  #   table: './resource/ACNE04/attribution.csv'
+  # },
+  train: {
+    # table: "./resource/ACNE04/Classification/NNEW_train_0.csv",
+    dictionary: "./resource/ACNE04/Feedback/V2/train.pkl"
+  },
+  validation: {
+    # table: "./resource/ACNE04/Classification/NNEW_val_0.csv",
+    dictionary: "./resource/ACNE04/Feedback/V2/validation.pkl"
+  },
+  test: {
+    table: "./resource/ACNE04/Classification/NNEW_test_0.csv",
+    dictionary: "./resource/ACNE04/Feedback/V2/test.pkl"
+  },
+  device: 'cpu'
 }
